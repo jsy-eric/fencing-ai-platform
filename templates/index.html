@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ 击剑AI智能体平台</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部导航 -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-sword"></i>
+                <h1>击剑AI智能体平台</h1>
+            </div>
+            <nav class="nav">
+                <a href="#home" class="nav-link active">首页</a>
+                <a href="#about" class="nav-link">关于</a>
+                <a href="#contact" class="nav-link">联系</a>
+            </nav>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 左侧：视频播放区域 -->
+            <div class="video-section">
+                <div class="video-container">
+                    <div class="video-input-section">
+                        <h3><i class="fas fa-youtube"></i> YouTube视频播放</h3>
+                        <div class="input-group">
+                            <input type="text" id="youtube-url" placeholder="请输入YouTube视频链接..." class="url-input">
+                            <button id="load-video" class="btn btn-primary">
+                                <i class="fas fa-play"></i> 加载视频
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="video-player" id="video-player">
+                        <div class="video-placeholder">
+                            <i class="fas fa-video fa-3x"></i>
+                            <p>请输入YouTube链接开始观看</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 弹幕显示区域 -->
+                    <div class="danmaku-display" id="danmaku-display">
+                        <!-- 弹幕将在这里动态显示 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：AI聊天和弹幕控制 -->
+            <div class="sidebar">
+                <!-- AI聊天区域 -->
+                <div class="chat-section">
+                    <h3><i class="fas fa-robot"></i> AI击剑专家</h3>
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message ai-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <p>您好！我是击剑AI专家，可以为您解答击剑相关问题，分析比赛内容，并生成相关弹幕。请问有什么可以帮助您的吗？</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input">
+                        <input type="text" id="chat-input" placeholder="输入您的问题..." class="chat-text-input">
+                        <button id="send-chat" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 弹幕控制区域 -->
+                <div class="danmaku-control">
+                    <h3><i class="fas fa-comments"></i> 弹幕控制</h3>
+                    
+                    <div class="danmaku-input">
+                        <input type="text" id="danmaku-input" placeholder="输入弹幕内容..." class="danmaku-text-input">
+                        <button id="send-danmaku" class="btn btn-secondary">
+                            <i class="fas fa-paper-plane"></i> 发送
+                        </button>
+                    </div>
+                    
+                    <div class="ai-danmaku-control">
+                        <button id="generate-ai-danmaku" class="btn btn-success">
+                            <i class="fas fa-magic"></i> AI生成弹幕
+                        </button>
+                        <button id="auto-generate" class="btn btn-info">
+                            <i class="fas fa-sync"></i> 自动生成
+                        </button>
+                    </div>
+                    
+                    <div class="danmaku-settings">
+                        <label>
+                            <input type="checkbox" id="show-danmaku" checked> 显示弹幕
+                        </label>
+                        <label>
+                            <input type="range" id="danmaku-speed" min="1" max="10" value="5"> 弹幕速度
+                        </label>
+                    </div>
+                </div>
+
+                <!-- FIE数据区域 -->
+                <div class="fie-data-section">
+                    <h3><i class="fas fa-trophy"></i> FIE比赛数据</h3>
+                    <div class="fie-data" id="fie-data">
+                        <div class="loading">加载中...</div>
+                    </div>
+                    <button id="refresh-fie" class="btn btn-outline">
+                        <i class="fas fa-refresh"></i> 刷新数据
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部信息 -->
+        <footer class="footer">
+            <p>&copy; 2024 击剑AI智能体平台. 基于AI技术提供专业击剑知识和弹幕服务.</p>
+        </footer>
+    </div>
+
+    <!-- 弹幕样式 -->
+    <style id="danmaku-style"></style>
+
+    <!-- JavaScript文件 -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/danmaku.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/youtube.js') }}"></script>
+</body>
+</html>
