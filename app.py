@@ -8,9 +8,11 @@ from utils.fencing_ai import FencingAI
 from utils.danmaku_system import DanmakuSystem
 from utils.fie_data import FIEDataCollector
 from utils.youtube_parser import YouTubeParser
+from config import Config
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+config = Config()
+app.secret_key = config.SECRET_KEY
 
 # 初始化各个系统
 fencing_ai = FencingAI()
@@ -172,6 +174,73 @@ def analyze_video():
         return jsonify({
             'success': True,
             'analysis': analysis
+        })
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai_status', methods=['GET'])
+def get_ai_status():
+    """获取AI系统状态"""
+    try:
+        status = fencing_ai.get_ai_status()
+        return jsonify({
+            'success': True,
+            'status': status
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test_deepseek', methods=['POST'])
+def test_deepseek():
+    """测试DeepSeek连接"""
+    try:
+        is_available = fencing_ai.test_deepseek_connection()
+        return jsonify({
+            'success': True,
+            'deepseek_available': is_available
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/switch_ai', methods=['POST'])
+def switch_ai():
+    """切换AI系统"""
+    try:
+        data = request.get_json()
+        ai_type = data.get('ai_type', 'auto')
+        
+        if ai_type == 'deepseek':
+            fencing_ai.switch_to_deepseek()
+        elif ai_type == 'local':
+            fencing_ai.switch_to_local_ai()
+        
+        status = fencing_ai.get_ai_status()
+        return jsonify({
+            'success': True,
+            'message': f'已切换到{ai_type} AI系统',
+            'status': status
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/advanced_analysis', methods=['POST'])
+def advanced_analysis():
+    """高级分析功能"""
+    try:
+        data = request.get_json()
+        question = data.get('question', '')
+        video_context = data.get('video_context', '')
+        
+        if not question:
+            return jsonify({'error': '请提供问题内容'}), 400
+        
+        analysis = fencing_ai.get_advanced_analysis(question, video_context)
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis,
+            'timestamp': datetime.now().isoformat()
         })
     
     except Exception as e:

@@ -94,13 +94,17 @@ class ChatSystem {
             this.hideTypingIndicator();
             
             // 添加AI回复
-            if (response) {
+            if (response && response.trim().length > 0) {
                 this.addMessage(response, 'ai');
+            } else {
+                console.warn('收到空响应');
+                this.addMessage('抱歉，我收到了空响应，请稍后再试。', 'ai');
             }
         } catch (error) {
             console.error('发送消息失败:', error);
             this.hideTypingIndicator();
-            this.addMessage('抱歉，我遇到了一些问题，请稍后再试。', 'ai');
+            const errorMessage = error.message || '未知错误';
+            this.addMessage(`抱歉，我遇到了一些问题：${errorMessage}。请稍后再试。`, 'ai');
         }
     }
 
@@ -117,13 +121,22 @@ class ChatSystem {
                 })
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
+            }
+
             const data = await response.json();
             if (data.success) {
-                return data.response;
+                if (data.response && data.response.trim().length > 0) {
+                    return data.response;
+                } else {
+                    throw new Error('AI返回了空响应');
+                }
             } else {
                 throw new Error(data.error || '未知错误');
             }
         } catch (error) {
+            console.error('发送消息到AI失败:', error);
             throw error;
         }
     }
@@ -137,13 +150,15 @@ class ChatSystem {
             // 如果有YouTube iframe，尝试获取当前播放信息
             try {
                 // 这里可以集成YouTube Player API获取更多信息
-                return '正在观看击剑比赛视频';
+                // 返回不带"正在观看"前缀的文本，由后端处理
+                return '击剑比赛视频';
             } catch (e) {
                 return '击剑比赛视频';
             }
         }
         
-        return '击剑比赛';
+        // 如果没有视频，返回空字符串，让后端使用默认回复
+        return '';
     }
 
     addMessage(content, type) {
