@@ -111,6 +111,43 @@ class DanmakuSystem:
         
         return danmaku_id
     
+    def generate_contextual_danmaku(self, video_frame_analysis: Dict, current_time: int = 0) -> str:
+        """基于视频帧分析生成弹幕"""
+        # 如果传入的是字符串（旧接口兼容），使用原来的方法
+        if isinstance(video_frame_analysis, str):
+            return self.generate_contextual_danmaku_legacy(video_frame_analysis, current_time)
+        
+        # 分析画面中的动作、运动员、场景
+        action = video_frame_analysis.get("action", {})
+        scene = video_frame_analysis.get("scene", {})
+        
+        # 根据动作生成弹幕
+        if action and action.get("action"):
+            action_name = action.get("action", "")
+            analysis = action.get("analysis", "")
+            
+            # 生成技术分析弹幕
+            if "转移刺" in action_name:
+                return f"精彩的{action_name}！{analysis}"
+            elif "格挡" in action_name:
+                return f"防守到位！{analysis}"
+            elif "复合进攻" in action_name:
+                return f"复合进攻很巧妙！{analysis}"
+            else:
+                return f"{action_name}时机把握很好！"
+        
+        # 根据场景生成弹幕
+        if scene:
+            weapon = scene.get("weapon", "")
+            stage = scene.get("stage", "")
+            if weapon and weapon != "未知":
+                return f"这是{weapon}比赛，当前处于{stage}阶段"
+        
+        return self._generate_general_danmaku(current_time)
+    
+    def generate_contextual_danmaku_legacy(self, video_context: str, current_time: int = 0) -> str:
+        """生成基于视频上下文的弹幕（旧接口）"""
+    
     def generate_ai_danmaku(self, video_context: str = "", user_message: str = "") -> str:
         """生成AI弹幕"""
         # 分析上下文

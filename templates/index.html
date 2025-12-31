@@ -44,6 +44,9 @@
                         </div>
                     </div>
                     
+                    <!-- 时间轴标注 -->
+                    <div id="video-timeline" class="video-timeline"></div>
+                    
                     <!-- 弹幕显示区域 -->
                     <div class="danmaku-display" id="danmaku-display">
                         <!-- 弹幕将在这里动态显示 -->
@@ -105,6 +108,22 @@
                     </div>
                 </div>
 
+                <!-- 动作分析面板 -->
+                <div class="action-analysis-section">
+                    <h3><i class="fas fa-brain"></i> 动作分析</h3>
+                    <div id="action-analysis-panel" class="action-analysis-panel">
+                        <p class="placeholder-text">视频播放时将显示动作分析</p>
+                    </div>
+                </div>
+
+                <!-- 知识推荐 -->
+                <div class="knowledge-recommendations-section">
+                    <h3><i class="fas fa-lightbulb"></i> 推荐学习</h3>
+                    <div id="knowledge-recommendations" class="knowledge-recommendations">
+                        <p class="placeholder-text">正在分析视频内容...</p>
+                    </div>
+                </div>
+
                 <!-- FIE数据区域 -->
                 <div class="fie-data-section">
                     <h3><i class="fas fa-trophy"></i> FIE比赛数据</h3>
@@ -132,5 +151,10 @@
     <script src="{{ url_for('static', filename='js/danmaku.js') }}"></script>
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
     <script src="{{ url_for('static', filename='js/youtube.js') }}"></script>
+    <!-- 新增功能 -->
+    <script src="{{ url_for('static', filename='js/knowledge_cards.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/timeline_annotator.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/interactive_qa.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/video_monitor.js') }}"></script>
 </body>
 </html>

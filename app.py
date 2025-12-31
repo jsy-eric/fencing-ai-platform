@@ -8,6 +8,11 @@ from utils.fencing_ai import FencingAI
 from utils.danmaku_system import DanmakuSystem
 from utils.fie_data import FIEDataCollector
 from utils.youtube_parser import YouTubeParser
+from utils.video_analyzer import VideoAnalyzer
+from utils.knowledge_recommender import KnowledgeRecommender
+from utils.learning_path import LearningPathTracker
+from utils.multimodal_analyzer import MultimodalAnalyzer
+from utils.action_recognizer import FencingActionRecognizer
 from config import Config
 
 app = Flask(__name__)
@@ -19,6 +24,11 @@ fencing_ai = FencingAI()
 danmaku_system = DanmakuSystem()
 fie_collector = FIEDataCollector()
 youtube_parser = YouTubeParser()
+video_analyzer = VideoAnalyzer()
+knowledge_recommender = KnowledgeRecommender()
+learning_path_tracker = LearningPathTracker()
+multimodal_analyzer = MultimodalAnalyzer()
+action_recognizer = FencingActionRecognizer()
 
 @app.route('/')
 def index():
@@ -243,6 +253,165 @@ def advanced_analysis():
             'timestamp': datetime.now().isoformat()
         })
     
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ========== 新增API端点 ==========
+
+@app.route('/api/detect_key_moments', methods=['POST'])
+def detect_key_moments():
+    """检测视频关键时刻"""
+    try:
+        data = request.get_json()
+        video_url = data.get('video_url', '')
+        video_duration = data.get('duration', 0)
+        
+        moments = video_analyzer.detect_key_moments(video_url, video_duration)
+        
+        return jsonify({
+            'success': True,
+            'moments': moments
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analyze_video_scene', methods=['POST'])
+def analyze_video_scene():
+    """分析视频场景"""
+    try:
+        data = request.get_json()
+        video_url = data.get('video_url', '')
+        current_time = data.get('current_time', 0)
+        frame_data = data.get('frame_data')
+        
+        scene_info = video_analyzer.analyze_video_scene(video_url, current_time, frame_data)
+        
+        return jsonify({
+            'success': True,
+            'scene': scene_info
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recognize_action', methods=['POST'])
+def recognize_action():
+    """识别击剑动作"""
+    try:
+        data = request.get_json()
+        frame_data = data.get('frame_data')
+        current_time = data.get('current_time', 0)
+        context = data.get('context')
+        
+        action_info = action_recognizer.recognize_action(frame_data, current_time, context)
+        
+        return jsonify({
+            'success': True,
+            'action': action_info
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recommend_knowledge', methods=['POST'])
+def recommend_knowledge():
+    """推荐相关知识"""
+    try:
+        data = request.get_json()
+        video_context = data.get('video_context', {})
+        user_id = data.get('user_id', 'default')
+        
+        recommendations = knowledge_recommender.recommend(video_context, user_id)
+        
+        return jsonify({
+            'success': True,
+            'recommendations': recommendations
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/get_learning_path', methods=['POST'])
+def get_learning_path():
+    """获取学习路径推荐"""
+    try:
+        data = request.get_json()
+        user_profile = data.get('user_profile', {'level': '初级', 'user_id': 'default'})
+        
+        next_knowledge = learning_path_tracker.get_next_knowledge(user_profile)
+        
+        return jsonify({
+            'success': True,
+            'recommendation': next_knowledge
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/update_learning_progress', methods=['POST'])
+def update_learning_progress():
+    """更新学习进度"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id', 'default')
+        topic = data.get('topic', '')
+        path_id = data.get('path_id')
+        
+        learning_path_tracker.update_progress(user_id, topic, path_id)
+        
+        return jsonify({
+            'success': True,
+            'message': '学习进度已更新'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/multimodal_analyze', methods=['POST'])
+def multimodal_analyze():
+    """多模态分析"""
+    try:
+        data = request.get_json()
+        video_url = data.get('video_url', '')
+        video_data = data.get('video_data')
+        audio_transcript = data.get('audio_transcript')
+        subtitles = data.get('subtitles')
+        
+        analysis = multimodal_analyzer.analyze(video_url, video_data, audio_transcript, subtitles)
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/generate_contextual_danmaku', methods=['POST'])
+def generate_contextual_danmaku():
+    """生成基于视频分析的弹幕"""
+    try:
+        data = request.get_json()
+        frame_analysis = data.get('frame_analysis', {})
+        current_time = data.get('current_time', 0)
+        
+        danmaku = danmaku_system.generate_contextual_danmaku(frame_analysis, current_time)
+        
+        return jsonify({
+            'success': True,
+            'danmaku': danmaku
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analyze_frame', methods=['POST'])
+def analyze_frame():
+    """分析视频帧"""
+    try:
+        data = request.get_json()
+        frame_data = data.get('frame_data', {})
+        current_time = data.get('current_time', 0)
+        
+        analysis = video_analyzer.analyze_frame(frame_data, current_time)
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
