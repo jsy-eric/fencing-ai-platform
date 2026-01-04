@@ -104,6 +104,11 @@ class YouTubeSystem {
                 // 通知其他系统视频已加载
                 this.onVideoLoaded(videoInfo);
                 
+                // 初始化帧捕获
+                if (window.frameCapture) {
+                    window.frameCapture.init(this.player);
+                }
+                
                 // 隐藏加载状态
                 this.hideLoadingState();
             } else {

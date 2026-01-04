@@ -1,8 +1,12 @@
 import os
 from dotenv import load_dotenv
 
-# 加载环境变量
-load_dotenv()
+# 加载环境变量（如果.env文件存在且可读）
+try:
+    load_dotenv()
+except (PermissionError, FileNotFoundError):
+    # 如果无法读取.env文件，使用默认值
+    pass
 
 class Config:
     """应用配置类"""

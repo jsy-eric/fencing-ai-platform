@@ -326,8 +326,9 @@ class ChatSystem {
         this.chatContainer.innerHTML = '';
         localStorage.removeItem('fencing_chat_history');
         
-        // 添加欢迎消息
-        this.addMessage('聊天历史已清除。您好！我是击剑AI专家，可以为您解答击剑相关问题，分析比赛内容，并生成相关弹幕。请问有什么可以帮助您的吗？', 'ai');
+        // 添加欢迎消息（使用i18n）
+        const welcomeMsg = window.i18n ? window.i18n.t('chat.welcome_message', '您好！我是击剑AI专家，可以为您解答击剑相关问题，分析比赛内容，并生成相关弹幕。请问有什么可以帮助您的吗？') : '聊天历史已清除。您好！我是击剑AI专家，可以为您解答击剑相关问题，分析比赛内容，并生成相关弹幕。请问有什么可以帮助您的吗？';
+        this.addMessage(welcomeMsg, 'ai');
     }
 
     // 快速回复功能

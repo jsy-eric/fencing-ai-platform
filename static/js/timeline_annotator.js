@@ -47,7 +47,8 @@ class TimelineAnnotator {
             this.init();
         }
 
-        this.timelineContainer.innerHTML = '<div class="timeline-header">关键时刻</div>';
+        const timelineTitle = window.i18n ? window.i18n.t('timeline.title', '关键时刻') : '关键时刻';
+        this.timelineContainer.innerHTML = `<div class="timeline-header">${timelineTitle}</div>`;
         const timelineBar = document.createElement('div');
         timelineBar.className = 'timeline-bar';
 

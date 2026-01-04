@@ -97,9 +97,10 @@ class InteractiveQA {
         qaCard.className = 'qa-card';
         qaCard.dataset.time = time;
 
+        const qaTitle = window.i18n ? window.i18n.t('qa.title', '知识问答') : '知识问答';
         qaCard.innerHTML = `
             <div class="qa-header">
-                <h4>💡 知识问答</h4>
+                <h4>💡 ${qaTitle}</h4>
                 <button class="qa-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
             </div>
             <div class="qa-body">
@@ -132,11 +133,13 @@ class InteractiveQA {
             option.disabled = true;
         });
 
-        // 显示解释
+        // 显示解释（使用i18n）
+        const correctText = window.i18n ? window.i18n.t('qa.correct', '回答正确！') : '回答正确！';
+        const wrongText = window.i18n ? window.i18n.t('qa.wrong', '回答错误') : '回答错误';
         const explanationDiv = document.createElement('div');
         explanationDiv.className = 'qa-explanation';
         explanationDiv.innerHTML = `
-            <p><strong>${selectedIndex === correctIndex ? '✓ 回答正确！' : '✗ 回答错误'}</strong></p>
+            <p><strong>${selectedIndex === correctIndex ? '✓ ' + correctText : '✗ ' + wrongText}</strong></p>
             <p>${explanation}</p>
         `;
         qaCard.querySelector('.qa-body').appendChild(explanationDiv);

@@ -1,0 +1,91 @@
+{
+  "app": {
+    "title": "Fencing AI Platform",
+    "welcome": "Welcome to Fencing AI Platform"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "footer": {
+    "description": "Providing professional fencing knowledge and danmaku services based on AI technology."
+  },
+  "video": {
+    "title": "YouTube Video Player",
+    "placeholder": "Enter YouTube video link...",
+    "load_button": "Load Video",
+    "loading": "Loading video...",
+    "load_failed": "Failed to load video",
+    "analyze": "AI Analysis",
+    "generate_danmaku": "Generate Danmaku"
+  },
+  "chat": {
+    "title": "AI Fencing Expert",
+    "placeholder": "Enter your question...",
+    "send": "Send",
+    "welcome_message": "Hello! I'm an AI fencing expert. I can answer your questions about fencing, including rules, techniques, history, competition analysis, training methods, and coach roles. How can I help you?",
+    "typing": "AI is typing...",
+    "error": "Sorry, I encountered some issues. Please try again later."
+  },
+  "danmaku": {
+    "title": "Danmaku Control",
+    "placeholder": "Enter danmaku content...",
+    "send": "Send",
+    "generate_ai": "AI Generate Danmaku",
+    "auto_generate": "Auto Generate",
+    "show_danmaku": "Show Danmaku",
+    "speed": "Danmaku Speed"
+  },
+  "fie_data": {
+    "title": "FIE Competition Data",
+    "loading": "Loading...",
+    "refresh": "Refresh Data"
+  },
+  "knowledge": {
+    "card_title": "Fencing Knowledge",
+    "save": "Save",
+    "share": "Share",
+    "saved": "Knowledge card saved",
+    "copied": "Content copied to clipboard"
+  },
+  "timeline": {
+    "title": "Key Moments",
+    "opening": "Opening",
+    "critical": "Critical",
+    "stage": "Stage"
+  },
+  "action_analysis": {
+    "title": "Action Analysis",
+    "action": "Action Recognition",
+    "confidence": "Confidence",
+    "technique": "Key Points",
+    "tips": "Key Points:",
+    "placeholder": "Action analysis will be displayed during video playback"
+  },
+  "recommendations": {
+    "title": "Recommended Learning",
+    "placeholder": "Analyzing video content..."
+  },
+  "qa": {
+    "title": "Knowledge Q&A",
+    "correct": "Correct!",
+    "wrong": "Wrong",
+    "close": "Close"
+  },
+  "notifications": {
+    "success": "Operation successful",
+    "error": "Operation failed",
+    "info": "Information",
+    "warning": "Warning"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "close": "Close",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  }
+}
+

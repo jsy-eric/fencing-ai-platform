@@ -55,12 +55,14 @@ class KnowledgeCardSystem {
 
         const footer = document.createElement('div');
         footer.className = 'knowledge-card-footer';
+        const saveText = window.i18n ? window.i18n.t('knowledge.save', '收藏') : '收藏';
+        const shareText = window.i18n ? window.i18n.t('knowledge.share', '分享') : '分享';
         footer.innerHTML = `
             <button class="btn-card-action" onclick="knowledgeCardSystem.saveCard(${time})">
-                <i class="fas fa-bookmark"></i> 收藏
+                <i class="fas fa-bookmark"></i> ${saveText}
             </button>
             <button class="btn-card-action" onclick="knowledgeCardSystem.shareCard(${time})">
-                <i class="fas fa-share"></i> 分享
+                <i class="fas fa-share"></i> ${shareText}
             </button>
         `;
 
@@ -102,8 +104,9 @@ class KnowledgeCardSystem {
             savedCards.push(knowledge);
             localStorage.setItem('saved_knowledge_cards', JSON.stringify(savedCards));
             
-            // 显示提示
-            this.showNotification('知识卡片已收藏', 'success');
+            // 显示提示（使用i18n）
+            const savedMsg = window.i18n ? window.i18n.t('knowledge.saved', '知识卡片已收藏') : '知识卡片已收藏';
+            this.showNotification(savedMsg, 'success');
         }
     }
 
@@ -121,7 +124,8 @@ class KnowledgeCardSystem {
             } else {
                 // 复制到剪贴板
                 navigator.clipboard.writeText(`${title}\n\n${content}`);
-                this.showNotification('内容已复制到剪贴板', 'success');
+                const copiedMsg = window.i18n ? window.i18n.t('knowledge.copied', '内容已复制到剪贴板') : '内容已复制到剪贴板';
+                this.showNotification(copiedMsg, 'success');
             }
         }
     }

@@ -13,7 +13,12 @@ from utils.knowledge_recommender import KnowledgeRecommender
 from utils.learning_path import LearningPathTracker
 from utils.multimodal_analyzer import MultimodalAnalyzer
 from utils.action_recognizer import FencingActionRecognizer
+from utils.cv_analyzer import CVAnalyzer
+from utils.pose_detector import PoseDetector
+from utils.action_commentator import ActionCommentator
+from utils.i18n import i18n
 from config import Config
+import base64
 
 app = Flask(__name__)
 config = Config()
@@ -29,11 +34,18 @@ knowledge_recommender = KnowledgeRecommender()
 learning_path_tracker = LearningPathTracker()
 multimodal_analyzer = MultimodalAnalyzer()
 action_recognizer = FencingActionRecognizer()
+cv_analyzer = CVAnalyzer()
+pose_detector = PoseDetector()
+action_commentator = ActionCommentator()
 
 @app.route('/')
 def index():
     """主页面"""
-    return render_template('index.html')
+    # 从session或请求参数获取语言设置
+    lang = request.args.get('lang') or session.get('language', 'zh_CN')
+    i18n.set_language(lang)
+    session['language'] = lang
+    return render_template('index.html', current_lang=lang)
 
 @app.route('/api/parse_youtube', methods=['POST'])
 def parse_youtube():
@@ -400,20 +412,114 @@ def generate_contextual_danmaku():
 
 @app.route('/api/analyze_frame', methods=['POST'])
 def analyze_frame():
-    """分析视频帧"""
+    """分析视频帧（支持图像数据）"""
     try:
         data = request.get_json()
         frame_data = data.get('frame_data', {})
         current_time = data.get('current_time', 0)
+        frame_image_base64 = data.get('frame_image', None)  # base64编码的图像
         
+        # 如果有图像数据，进行CV分析
+        frame_image_bytes = None
+        if frame_image_base64:
+            try:
+                # 移除data:image前缀（如果有）
+                if ',' in frame_image_base64:
+                    frame_image_base64 = frame_image_base64.split(',')[1]
+                frame_image_bytes = base64.b64decode(frame_image_base64)
+            except Exception as e:
+                print(f"Failed to decode frame image: {e}")
+        
+        # 使用CV分析器分析图像
+        cv_analysis = None
+        if frame_image_bytes:
+            cv_analysis = cv_analyzer.analyze_frame(frame_image_bytes, current_time)
+        
+        # 使用姿态检测器检测姿态
+        pose_result = None
+        if frame_image_bytes:
+            try:
+                pose_result = pose_detector.detect_pose(frame_image_bytes)
+            except Exception as e:
+                print(f"Pose detection error: {e}")
+        
+        # 使用动作识别器识别动作
+        action_result = action_recognizer.recognize_action(
+            frame_data, 
+            current_time, 
+            context=cv_analysis,
+            frame_image=frame_image_bytes
+        )
+        
+        # 生成技术解说
+        pose_features = pose_result.get('features', {}) if pose_result else None
+        commentary = action_commentator.generate_detailed_commentary(
+            action_result,
+            pose_features=pose_features,
+            context=cv_analysis
+        )
+        
+        # 综合分析结果
         analysis = video_analyzer.analyze_frame(frame_data, current_time)
+        analysis['action'] = action_result
+        analysis['cv_analysis'] = cv_analysis
+        analysis['pose_detection'] = pose_result
+        analysis['commentary'] = commentary
         
         return jsonify({
             'success': True,
-            'analysis': analysis
+            'analysis': analysis,
+            'action_detected': action_result.get('action'),
+            'confidence': action_result.get('confidence', 0),
+            'commentary': commentary.get('main_commentary', ''),
+            'detailed_commentary': commentary,
+            'timestamp': current_time
+        })
+    except Exception as e:
+        import traceback
+        print(f"Frame analysis error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/translations', methods=['GET'])
+def get_translations():
+    """获取翻译文本"""
+    try:
+        lang = request.args.get('lang', 'zh_CN')
+        i18n.set_language(lang)
+        translations = i18n.get_all_translations()
+        
+        return jsonify({
+            'success': True,
+            'translations': translations,
+            'language': lang
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/set_language', methods=['POST'])
+def set_language():
+    """设置语言"""
+    try:
+        data = request.get_json()
+        lang = data.get('language', 'zh_CN')
+        
+        if lang in ['zh_CN', 'en_US']:
+            i18n.set_language(lang)
+            session['language'] = lang
+            
+            return jsonify({
+                'success': True,
+                'language': lang,
+                'message': 'Language updated successfully'
+            })
+        else:
+            return jsonify({'error': 'Invalid language code'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    # 支持Cloud Run和App Engine的PORT环境变量
+    port = int(os.environ.get('PORT', 8080))
+    debug = os.environ.get('FLASK_ENV', 'development') == 'development'
+    app.run(debug=debug, host='0.0.0.0', port=port)

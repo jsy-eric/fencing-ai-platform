@@ -1,0 +1,91 @@
+{
+  "app": {
+    "title": "击剑AI智能体平台",
+    "welcome": "欢迎使用击剑AI智能体平台"
+  },
+  "nav": {
+    "home": "首页",
+    "about": "关于",
+    "contact": "联系"
+  },
+  "footer": {
+    "description": "基于AI技术提供专业击剑知识和弹幕服务."
+  },
+  "video": {
+    "title": "YouTube视频播放",
+    "placeholder": "请输入YouTube视频链接...",
+    "load_button": "加载视频",
+    "loading": "正在加载视频...",
+    "load_failed": "加载视频失败",
+    "analyze": "AI分析",
+    "generate_danmaku": "生成弹幕"
+  },
+  "chat": {
+    "title": "AI击剑专家",
+    "placeholder": "输入您的问题...",
+    "send": "发送",
+    "welcome_message": "您好！我是击剑AI专家，可以为您解答击剑相关问题，包括规则、技术、历史、比赛分析、训练方法、教练作用等。请问有什么可以帮助您的吗？",
+    "typing": "AI正在输入...",
+    "error": "抱歉，我遇到了一些问题，请稍后再试。"
+  },
+  "danmaku": {
+    "title": "弹幕控制",
+    "placeholder": "输入弹幕内容...",
+    "send": "发送",
+    "generate_ai": "AI生成弹幕",
+    "auto_generate": "自动生成",
+    "show_danmaku": "显示弹幕",
+    "speed": "弹幕速度"
+  },
+  "fie_data": {
+    "title": "FIE比赛数据",
+    "loading": "加载中...",
+    "refresh": "刷新数据"
+  },
+  "knowledge": {
+    "card_title": "击剑知识",
+    "save": "收藏",
+    "share": "分享",
+    "saved": "知识卡片已收藏",
+    "copied": "内容已复制到剪贴板"
+  },
+  "timeline": {
+    "title": "关键时刻",
+    "opening": "开始",
+    "critical": "关键",
+    "stage": "阶段"
+  },
+  "action_analysis": {
+    "title": "动作分析",
+    "action": "动作识别",
+    "confidence": "置信度",
+    "technique": "技术要点",
+    "tips": "技术要点：",
+    "placeholder": "视频播放时将显示动作分析"
+  },
+  "recommendations": {
+    "title": "推荐学习",
+    "placeholder": "正在分析视频内容..."
+  },
+  "qa": {
+    "title": "知识问答",
+    "correct": "回答正确！",
+    "wrong": "回答错误",
+    "close": "关闭"
+  },
+  "notifications": {
+    "success": "操作成功",
+    "error": "操作失败",
+    "info": "提示信息",
+    "warning": "警告"
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "close": "关闭",
+    "confirm": "确认",
+    "cancel": "取消"
+  }
+}
+

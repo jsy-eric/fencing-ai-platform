@@ -51,6 +51,37 @@ body {
     gap: 2rem;
 }
 
+.nav {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.language-switcher {
+    margin-left: auto;
+}
+
+.btn-lang {
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid #667eea;
+    color: #667eea;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-lang:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
 .nav-link {
     text-decoration: none;
     color: #666;
@@ -816,6 +847,173 @@ body {
 
 .action-analysis-panel {
     margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.action-analysis-panel.action-updated {
+    animation: actionUpdate 0.5s ease;
+}
+
+@keyframes actionUpdate {
+    0% {
+        background: rgba(102, 126, 234, 0.1);
+    }
+    100% {
+        background: transparent;
+    }
+}
+
+/* 动作识别结果 */
+.action-recognition-result {
+    padding: 15px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.action-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.action-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.action-category {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-进攻 {
+    background: #ff6b6b;
+    color: white;
+}
+
+.badge-防守 {
+    background: #4ecdc4;
+    color: white;
+}
+
+.badge-防守反击 {
+    background: #ffe66d;
+    color: #333;
+}
+
+.action-confidence {
+    margin-left: auto;
+    padding: 4px 10px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.action-technique {
+    margin: 12px 0;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.action-analysis {
+    margin: 12px 0;
+    padding: 10px;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 6px;
+    border-left: 3px solid #667eea;
+}
+
+.action-analysis p {
+    margin: 0;
+    color: #444;
+    font-style: italic;
+}
+
+.action-key-points {
+    margin: 12px 0;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+}
+
+.action-key-points strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.action-key-points ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.action-key-points li {
+    margin: 5px 0;
+    color: #555;
+    line-height: 1.5;
+}
+
+.action-timestamp {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    text-align: right;
+}
+
+.action-timestamp small {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+/* 技术解说样式 */
+.action-commentary {
+    margin: 15px 0;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    color: white;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.commentary-icon {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 1.2rem;
+}
+
+.commentary-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    font-weight: 500;
+    padding-right: 30px;
+}
+
+.action-commentary::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px 0 0 8px;
+}
 }
 
 .action-analysis {

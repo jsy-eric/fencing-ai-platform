@@ -1,0 +1,51 @@
+runtime: python39
+
+# 环境变量
+env_variables:
+  FLASK_ENV: production
+  PORT: 8080
+
+# 自动扩缩容配置
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  target_cpu_utilization: 0.6
+
+# 资源配置
+resources:
+  cpu: 2
+  memory_gb: 2
+  disk_size_gb: 10
+
+# 健康检查
+readiness_check:
+  path: "/"
+  check_interval_sec: 5
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+
+liveness_check:
+  path: "/"
+  check_interval_sec: 30
+  timeout_sec: 4
+  failure_threshold: 4
+  success_threshold: 2
+
+# URL路由
+handlers:
+- url: /.*
+  script: auto
+
+# 跳过文件
+skip_files:
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+- ^(.*/)?\..*$
+- ^(.*/)?tests/.*$
+- ^(.*/)?venv/.*$
+- ^(.*/)?\.git/.*$
+- ^(.*/)?.*\.md$
+

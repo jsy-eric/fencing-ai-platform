@@ -13,12 +13,17 @@
         <header class="header">
             <div class="logo">
                 <i class="fas fa-sword"></i>
-                <h1>击剑AI智能体平台</h1>
+                <h1 data-i18n="app.title">击剑AI智能体平台</h1>
             </div>
             <nav class="nav">
-                <a href="#home" class="nav-link active">首页</a>
-                <a href="#about" class="nav-link">关于</a>
-                <a href="#contact" class="nav-link">联系</a>
+                <a href="#home" class="nav-link active" data-i18n="nav.home">首页</a>
+                <a href="#about" class="nav-link" data-i18n="nav.about">关于</a>
+                <a href="#contact" class="nav-link" data-i18n="nav.contact">联系</a>
+                <div class="language-switcher">
+                    <button id="lang-switch" class="btn-lang" title="Switch Language">
+                        <i class="fas fa-language"></i> <span id="lang-code">中文</span>
+                    </button>
+                </div>
             </nav>
         </header>
 
@@ -28,11 +33,11 @@
             <div class="video-section">
                 <div class="video-container">
                     <div class="video-input-section">
-                        <h3><i class="fas fa-youtube"></i> YouTube视频播放</h3>
+                        <h3><i class="fas fa-youtube"></i> <span data-i18n="video.title">YouTube视频播放</span></h3>
                         <div class="input-group">
-                            <input type="text" id="youtube-url" placeholder="请输入YouTube视频链接..." class="url-input">
+                            <input type="text" id="youtube-url" data-i18n-placeholder="video.placeholder" placeholder="请输入YouTube视频链接..." class="url-input">
                             <button id="load-video" class="btn btn-primary">
-                                <i class="fas fa-play"></i> 加载视频
+                                <i class="fas fa-play"></i> <span data-i18n="video.load_button">加载视频</span>
                             </button>
                         </div>
                     </div>
@@ -40,7 +45,7 @@
                     <div class="video-player" id="video-player">
                         <div class="video-placeholder">
                             <i class="fas fa-video fa-3x"></i>
-                            <p>请输入YouTube链接开始观看</p>
+                            <p data-i18n="video.placeholder">请输入YouTube链接开始观看</p>
                         </div>
                     </div>
                     
@@ -58,20 +63,20 @@
             <div class="sidebar">
                 <!-- AI聊天区域 -->
                 <div class="chat-section">
-                    <h3><i class="fas fa-robot"></i> AI击剑专家</h3>
+                    <h3><i class="fas fa-robot"></i> <span data-i18n="chat.title">AI击剑专家</span></h3>
                     <div class="chat-messages" id="chat-messages">
                         <div class="message ai-message">
                             <div class="message-avatar">
                                 <i class="fas fa-robot"></i>
                             </div>
                             <div class="message-content">
-                                <p>您好！我是击剑AI专家，可以为您解答击剑相关问题，分析比赛内容，并生成相关弹幕。请问有什么可以帮助您的吗？</p>
+                                <p data-i18n="chat.welcome_message">您好！我是击剑AI专家，可以为您解答击剑相关问题，分析比赛内容，并生成相关弹幕。请问有什么可以帮助您的吗？</p>
                             </div>
                         </div>
                     </div>
                     
                     <div class="chat-input">
-                        <input type="text" id="chat-input" placeholder="输入您的问题..." class="chat-text-input">
+                        <input type="text" id="chat-input" data-i18n-placeholder="chat.placeholder" placeholder="输入您的问题..." class="chat-text-input">
                         <button id="send-chat" class="btn btn-primary">
                             <i class="fas fa-paper-plane"></i>
                         </button>
@@ -80,58 +85,58 @@
 
                 <!-- 弹幕控制区域 -->
                 <div class="danmaku-control">
-                    <h3><i class="fas fa-comments"></i> 弹幕控制</h3>
+                    <h3><i class="fas fa-comments"></i> <span data-i18n="danmaku.title">弹幕控制</span></h3>
                     
                     <div class="danmaku-input">
-                        <input type="text" id="danmaku-input" placeholder="输入弹幕内容..." class="danmaku-text-input">
+                        <input type="text" id="danmaku-input" data-i18n-placeholder="danmaku.placeholder" placeholder="输入弹幕内容..." class="danmaku-text-input">
                         <button id="send-danmaku" class="btn btn-secondary">
-                            <i class="fas fa-paper-plane"></i> 发送
+                            <i class="fas fa-paper-plane"></i> <span data-i18n="danmaku.send">发送</span>
                         </button>
                     </div>
                     
                     <div class="ai-danmaku-control">
                         <button id="generate-ai-danmaku" class="btn btn-success">
-                            <i class="fas fa-magic"></i> AI生成弹幕
+                            <i class="fas fa-magic"></i> <span data-i18n="danmaku.generate_ai">AI生成弹幕</span>
                         </button>
                         <button id="auto-generate" class="btn btn-info">
-                            <i class="fas fa-sync"></i> 自动生成
+                            <i class="fas fa-sync"></i> <span data-i18n="danmaku.auto_generate">自动生成</span>
                         </button>
                     </div>
                     
                     <div class="danmaku-settings">
                         <label>
-                            <input type="checkbox" id="show-danmaku" checked> 显示弹幕
+                            <input type="checkbox" id="show-danmaku" checked> <span data-i18n="danmaku.show_danmaku">显示弹幕</span>
                         </label>
                         <label>
-                            <input type="range" id="danmaku-speed" min="1" max="10" value="5"> 弹幕速度
+                            <input type="range" id="danmaku-speed" min="1" max="10" value="5"> <span data-i18n="danmaku.speed">弹幕速度</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- 动作分析面板 -->
                 <div class="action-analysis-section">
-                    <h3><i class="fas fa-brain"></i> 动作分析</h3>
+                    <h3><i class="fas fa-brain"></i> <span data-i18n="action_analysis.title">动作分析</span></h3>
                     <div id="action-analysis-panel" class="action-analysis-panel">
-                        <p class="placeholder-text">视频播放时将显示动作分析</p>
+                        <p class="placeholder-text" data-i18n="action_analysis.placeholder">视频播放时将显示动作分析</p>
                     </div>
                 </div>
 
                 <!-- 知识推荐 -->
                 <div class="knowledge-recommendations-section">
-                    <h3><i class="fas fa-lightbulb"></i> 推荐学习</h3>
+                    <h3><i class="fas fa-lightbulb"></i> <span data-i18n="recommendations.title">推荐学习</span></h3>
                     <div id="knowledge-recommendations" class="knowledge-recommendations">
-                        <p class="placeholder-text">正在分析视频内容...</p>
+                        <p class="placeholder-text" data-i18n="recommendations.placeholder">正在分析视频内容...</p>
                     </div>
                 </div>
 
                 <!-- FIE数据区域 -->
                 <div class="fie-data-section">
-                    <h3><i class="fas fa-trophy"></i> FIE比赛数据</h3>
+                    <h3><i class="fas fa-trophy"></i> <span data-i18n="fie_data.title">FIE比赛数据</span></h3>
                     <div class="fie-data" id="fie-data">
-                        <div class="loading">加载中...</div>
+                        <div class="loading" data-i18n="fie_data.loading">加载中...</div>
                     </div>
                     <button id="refresh-fie" class="btn btn-outline">
-                        <i class="fas fa-refresh"></i> 刷新数据
+                        <i class="fas fa-refresh"></i> <span data-i18n="fie_data.refresh">刷新数据</span>
                     </button>
                 </div>
             </div>
@@ -139,14 +144,22 @@
 
         <!-- 底部信息 -->
         <footer class="footer">
-            <p>&copy; 2024 击剑AI智能体平台. 基于AI技术提供专业击剑知识和弹幕服务.</p>
+            <p>&copy; 2024 <span data-i18n="app.title">击剑AI智能体平台</span>. <span data-i18n="footer.description">基于AI技术提供专业击剑知识和弹幕服务.</span></p>
         </footer>
     </div>
 
     <!-- 弹幕样式 -->
     <style id="danmaku-style"></style>
 
-    <!-- JavaScript文件 -->
+    <!-- JavaScript文件 - i18n必须在最前面加载 -->
+    <script>
+        // 初始化i18n配置
+        window.I18N_CONFIG = {
+            currentLanguage: '{{ current_lang or "zh_CN" }}',
+            apiEndpoint: '{{ url_for("get_translations") }}'
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/danmaku.js') }}"></script>
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
@@ -155,6 +168,7 @@
     <script src="{{ url_for('static', filename='js/knowledge_cards.js') }}"></script>
     <script src="{{ url_for('static', filename='js/timeline_annotator.js') }}"></script>
     <script src="{{ url_for('static', filename='js/interactive_qa.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/frame_capture.js') }}"></script>
     <script src="{{ url_for('static', filename='js/video_monitor.js') }}"></script>
 </body>
 </html>
