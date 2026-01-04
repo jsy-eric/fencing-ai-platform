@@ -14,8 +14,36 @@ class VideoMonitor {
         
         // 加载关键时刻
         if (window.timelineAnnotator) {
-            const duration = videoInfo.duration || 300; // 默认5分钟
-            window.timelineAnnotator.loadKeyMoments(videoInfo.url, duration);
+            console.log('[VideoMonitor] 准备加载关键时刻，videoInfo:', videoInfo);
+            // 尝试多种方式获取视频时长
+            let duration = 0;
+            if (videoInfo.duration) {
+                // 如果duration是字符串（如"5:30"），需要转换
+                if (typeof videoInfo.duration === 'string') {
+                    duration = this.parseDurationString(videoInfo.duration);
+                } else {
+                    duration = parseInt(videoInfo.duration) || 0;
+                }
+            }
+            
+            // 如果还是没有时长，使用默认值
+            if (duration === 0) {
+                duration = 300; // 默认5分钟
+                console.warn('[VideoMonitor] 无法获取视频时长，使用默认值300秒');
+            }
+            
+            console.log(`[VideoMonitor] 视频时长: ${duration}秒，准备调用 loadKeyMoments`);
+            console.log(`[VideoMonitor] timelineAnnotator 对象:`, window.timelineAnnotator);
+            console.log(`[VideoMonitor] loadKeyMoments 方法:`, typeof window.timelineAnnotator.loadKeyMoments);
+            
+            if (typeof window.timelineAnnotator.loadKeyMoments === 'function') {
+                window.timelineAnnotator.loadKeyMoments(videoInfo.url, duration);
+                console.log('[VideoMonitor] loadKeyMoments 已调用');
+            } else {
+                console.error('[VideoMonitor] loadKeyMoments 方法不存在！');
+            }
+        } else {
+            console.warn('[VideoMonitor] timelineAnnotator 不存在！');
         }
 
         // 初始化帧捕获
@@ -185,6 +213,23 @@ class VideoMonitor {
         const minutes = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    parseDurationString(durationStr) {
+        // 解析时长字符串，如 "5:30" 或 "1:05:30"
+        try {
+            const parts = durationStr.split(':').map(Number);
+            if (parts.length === 2) {
+                // MM:SS
+                return parts[0] * 60 + parts[1];
+            } else if (parts.length === 3) {
+                // HH:MM:SS
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            }
+        } catch (e) {
+            console.warn('[VideoMonitor] 解析时长字符串失败:', durationStr);
+        }
+        return 0;
     }
 
     processAnalysis(analysis, currentTime) {

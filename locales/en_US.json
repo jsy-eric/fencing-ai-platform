@@ -53,7 +53,9 @@
     "title": "Key Moments",
     "opening": "Opening",
     "critical": "Critical",
-    "stage": "Stage"
+    "stage": "Stage",
+    "descriptions_title": "Time Point Descriptions",
+    "seek_to_time": "Seek to this time"
   },
   "action_analysis": {
     "title": "Action Analysis",

@@ -789,27 +789,39 @@ body {
 
 .timeline-bar {
     position: relative;
-    height: 40px;
-    background: #f0f0f0;
-    border-radius: 20px;
+    height: 50px;
+    background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 100%);
+    border-radius: 25px;
     margin: 10px 0;
+    border: 1px solid #ddd;
+    min-height: 50px;
+}
+
+.timeline-empty {
+    text-align: center;
+    padding: 15px;
+    color: #999;
+    font-size: 0.9rem;
 }
 
 .timeline-marker {
     position: absolute;
     top: 50%;
-    transform: translateY(-50%);
     cursor: pointer;
     z-index: 10;
+    min-width: 40px;
+    text-align: center;
 }
 
 .marker-dot {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: #667eea;
     margin: 0 auto;
     transition: all 0.2s;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .timeline-marker:hover .marker-dot {
@@ -825,6 +837,23 @@ body {
     white-space: nowrap;
 }
 
+/* 时间点颜色 - 使用data属性选择器 */
+.timeline-marker[data-type="开始"] .marker-dot {
+    background: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.timeline-marker[data-type="关键"] .marker-dot {
+    background: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+.timeline-marker[data-type="阶段"] .marker-dot {
+    background: #ffc107 !important;
+    border-color: #ffc107 !important;
+}
+
+/* 兼容旧的类名选择器 */
 .marker-开始 .marker-dot {
     background: #28a745;
 }
@@ -835,6 +864,162 @@ body {
 
 .marker-阶段 .marker-dot {
     background: #ffc107;
+}
+
+/* 时间点描述区域 */
+.timeline-descriptions {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    display: block !important; /* 确保显示 */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.timeline-descriptions-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+}
+
+.timeline-descriptions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.timeline-description-item {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.timeline-description-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+}
+
+.timeline-description-item.active {
+    border-color: #667eea;
+    background: #f0f4ff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.description-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.description-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 2px solid;
+}
+
+.description-time {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.description-item-content {
+    margin-bottom: 10px;
+}
+
+.description-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 8px 0;
+}
+
+.description-text {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.6;
+    margin: 8px 0;
+}
+
+.description-tips {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.description-tips strong {
+    color: #667eea;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.description-tips ul {
+    margin: 5px 0 0 0;
+    padding-left: 20px;
+    color: #666;
+}
+
+.description-tips li {
+    margin: 4px 0;
+    line-height: 1.5;
+}
+
+.description-seek-btn {
+    width: 100%;
+    padding: 8px 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.description-seek-btn:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.description-seek-btn:active {
+    transform: translateY(0);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .timeline-descriptions {
+        padding: 15px;
+    }
+    
+    .description-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .timeline-descriptions-list {
+        gap: 12px;
+    }
 }
 
 /* 动作分析面板 */

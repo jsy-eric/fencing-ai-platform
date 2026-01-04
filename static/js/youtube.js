@@ -254,8 +254,8 @@ class YouTubeSystem {
     }
 
     onVideoLoaded(videoInfo) {
-        // 通知弹幕系统
-        if (window.danmakuSystem) {
+        // 通知弹幕系统（如果存在onVideoLoaded方法）
+        if (window.danmakuSystem && typeof window.danmakuSystem.onVideoLoaded === 'function') {
             window.danmakuSystem.onVideoLoaded(videoInfo);
         }
         

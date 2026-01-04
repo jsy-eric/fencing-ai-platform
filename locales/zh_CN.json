@@ -53,7 +53,9 @@
     "title": "关键时刻",
     "opening": "开始",
     "critical": "关键",
-    "stage": "阶段"
+    "stage": "阶段",
+    "descriptions_title": "时间点说明",
+    "seek_to_time": "跳转到此时间点"
   },
   "action_analysis": {
     "title": "动作分析",

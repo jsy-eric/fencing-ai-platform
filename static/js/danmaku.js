@@ -304,6 +304,17 @@ class DanmakuSystem {
             queue: this.danmakuQueue
         };
     }
+
+    // 视频加载完成时的回调
+    onVideoLoaded(videoInfo) {
+        console.log('[Danmaku] 视频已加载，准备生成弹幕:', videoInfo);
+        // 可以在这里添加视频加载后的初始化逻辑
+        // 例如：清空之前的弹幕，准备新的弹幕等
+        if (videoInfo) {
+            // 可以基于视频信息生成初始弹幕
+            // this.generateAIDanmaku();
+        }
+    }
 }
 
 // 页面加载完成后初始化弹幕系统
