@@ -93,6 +93,15 @@ class VideoAnalyzer:
     
     def _detect_weapon_type(self, video_url: str, frame_data: Optional[Dict]) -> str:
         """检测剑种"""
+        # 优先使用前端显式选择的剑种（更可靠）
+        try:
+            if frame_data:
+                weapon_override = frame_data.get("weapon")
+                if weapon_override in {"花剑", "重剑", "佩剑"}:
+                    return weapon_override
+        except Exception:
+            pass
+
         url_lower = video_url.lower()
         if "foil" in url_lower or "花剑" in url_lower:
             return "花剑"
@@ -166,9 +175,15 @@ class VideoAnalyzer:
     
     def analyze_frame(self, frame_data: Dict, current_time: int) -> Dict:
         """分析视频帧"""
+        video_url = ""
+        try:
+            video_url = (frame_data or {}).get("video_url", "") or ""
+        except Exception:
+            video_url = ""
+
         analysis = {
             "timestamp": current_time,
-            "scene": self.analyze_video_scene("", current_time, frame_data),
+            "scene": self.analyze_video_scene(video_url, current_time, frame_data),
             "action": self.recognize_action(frame_data, current_time),
             "knowledge_points": []
         }
@@ -189,18 +204,38 @@ class VideoAnalyzer:
                 "type": "技术",
                 "title": action.get("action", "技术动作"),
                 "content": action.get("technique", ""),
+                "tips": action.get("tips") or action.get("key_points") or [],
+                "time": analysis.get("timestamp", 0)
+            })
+
+        # 补充“阶段/观赛要点”（让推送更贴近当前进程）
+        scene = analysis.get("scene", {}) or {}
+        stage = scene.get("stage")
+        if stage:
+            stage_tips = {
+                "开局": ["先观察对手节奏与距离", "用小动作试探，不轻易交底"],
+                "中段": ["根据前几回合调整距离与节奏", "留意对手常用格挡线路"],
+                "关键分": ["优先稳定命中率与时机", "避免无谓冒进，控制风险"],
+                "结束": ["领先时控制节奏与距离", "落后时创造高质量进攻机会"]
+            }.get(stage, [])
+            points.append({
+                "type": "战术",
+                "title": f"{stage}观赛要点",
+                "content": f"当前阶段：{stage}。建议关注距离、节奏与得分选择。",
+                "tips": stage_tips,
                 "time": analysis.get("timestamp", 0)
             })
         
         # 从场景分析中提取知识点
-        scene = analysis.get("scene", {})
         if scene.get("weapon") != "未知":
             points.append({
                 "type": "规则",
                 "title": f"{scene.get('weapon')}规则",
                 "content": self._get_weapon_knowledge(scene.get("weapon")),
+                "tips": [],
                 "time": analysis.get("timestamp", 0)
             })
         
         return points
+
 

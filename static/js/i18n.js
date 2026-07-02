@@ -1,151 +1,144 @@
-// 国际化支持 - 前端i18n模块
-class I18n {
-    constructor() {
-        // 从window.I18N_CONFIG或localStorage获取语言设置
-        const configLang = window.I18N_CONFIG ? window.I18N_CONFIG.currentLanguage : null;
-        this.currentLanguage = configLang || localStorage.getItem('language') || 'zh_CN';
-        this.translations = {};
-        this.init();
+// 简易 i18n：中英文切换（UI 文案）
+(() => {
+    const STORAGE_KEY = 'ui_lang';
+
+    const DICT = {
+        zh: {
+            'nav.home': '首页',
+            'nav.about': '关于',
+            'nav.contact': '联系',
+
+            'video.title': 'YouTube视频播放',
+            'video.url.placeholder': '请输入YouTube视频链接...',
+            'video.weapon.auto': '剑种：自动',
+            'video.weapon.foil': '花剑',
+            'video.weapon.epee': '重剑',
+            'video.weapon.sabre': '佩剑',
+            'video.load': '加载视频',
+
+            'chat.title': 'AI击剑专家',
+            'chat.welcome': '您好！我是击剑AI专家，可以为您解答击剑相关问题，分析比赛内容，并生成相关弹幕。请问有什么可以帮助您的吗？',
+            'chat.input.placeholder': '输入您的问题...',
+
+            'danmaku.title': '弹幕控制',
+            'danmaku.input.placeholder': '输入弹幕内容...',
+            'danmaku.send': '发送',
+            'danmaku.ai': 'AI生成弹幕',
+            'danmaku.auto': '自动生成',
+            'danmaku.show': '显示弹幕',
+            'danmaku.speed': '弹幕速度',
+
+            'action.title': '动作分析',
+            'action.placeholder': '视频播放时将显示动作分析',
+
+            'rec.title': '推荐学习',
+            'rec.autoPush': '自动推送',
+            'rec.placeholder': '正在分析视频内容...',
+
+            'fie.title': 'FIE比赛数据',
+            'fie.loading': '加载中...',
+            'fie.refresh': '刷新数据',
+
+            'footer': '© 2024 击剑AI智能体平台. 基于AI技术提供专业击剑知识和弹幕服务.'
+        },
+        en: {
+            'nav.home': 'Home',
+            'nav.about': 'About',
+            'nav.contact': 'Contact',
+
+            'video.title': 'YouTube Player',
+            'video.url.placeholder': 'Paste a YouTube URL...',
+            'video.weapon.auto': 'Weapon: Auto',
+            'video.weapon.foil': 'Foil',
+            'video.weapon.epee': 'Epee',
+            'video.weapon.sabre': 'Sabre',
+            'video.load': 'Load',
+
+            'chat.title': 'AI Fencing Coach',
+            'chat.welcome': "Hi! I'm an AI fencing coach. Ask me about rules, techniques, and what’s happening in the match. How can I help?",
+            'chat.input.placeholder': 'Type your question...',
+
+            'danmaku.title': 'Danmaku Controls',
+            'danmaku.input.placeholder': 'Type a comment...',
+            'danmaku.send': 'Send',
+            'danmaku.ai': 'AI Danmaku',
+            'danmaku.auto': 'Auto',
+            'danmaku.show': 'Show Danmaku',
+            'danmaku.speed': 'Speed',
+
+            'action.title': 'Action Analysis',
+            'action.placeholder': 'Action analysis will appear during playback',
+
+            'rec.title': 'Recommendations',
+            'rec.autoPush': 'Auto push',
+            'rec.placeholder': 'Analyzing video...',
+
+            'fie.title': 'FIE Data',
+            'fie.loading': 'Loading...',
+            'fie.refresh': 'Refresh',
+
+            'footer': '© 2024 Fencing AI Platform. Professional fencing knowledge & danmaku powered by AI.'
+        }
+    };
+
+    function getLang() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        return saved === 'en' ? 'en' : 'zh';
     }
 
-    async init() {
-        await this.loadTranslations();
-        // 延迟应用翻译，确保DOM已加载
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                this.applyTranslations();
-                this.setupLanguageSwitcher();
+    function setLang(lang) {
+        localStorage.setItem(STORAGE_KEY, lang);
+    }
+
+    function t(lang, key) {
+        return (DICT[lang] && DICT[lang][key]) || (DICT.zh && DICT.zh[key]) || '';
+    }
+
+    function applyLang(lang) {
+        document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+
+        // text nodes
+        document.querySelectorAll('[data-i18n]').forEach((el) => {
+            const key = el.getAttribute('data-i18n');
+            const val = t(lang, key);
+            if (val) el.textContent = val;
+        });
+
+        // placeholders
+        document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            const val = t(lang, key);
+            if (val) el.setAttribute('placeholder', val);
+        });
+
+        // option texts
+        document.querySelectorAll('option[data-i18n]').forEach((el) => {
+            const key = el.getAttribute('data-i18n');
+            const val = t(lang, key);
+            if (val) el.textContent = val;
+        });
+
+        // update language button states
+        document.querySelectorAll('.lang-btn').forEach((btn) => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+    }
+
+    function bindLangToggle() {
+        document.querySelectorAll('.lang-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang === 'en' ? 'en' : 'zh';
+                setLang(lang);
+                applyLang(lang);
             });
-        } else {
-            this.applyTranslations();
-            this.setupLanguageSwitcher();
-        }
-    }
-
-    async loadTranslations() {
-        try {
-            const response = await fetch(`/api/translations?lang=${this.currentLanguage}`);
-            const data = await response.json();
-            if (data.success) {
-                this.translations = data.translations;
-            }
-        } catch (error) {
-            console.error('Failed to load translations:', error);
-            // 使用默认翻译
-            this.translations = this.getDefaultTranslations();
-        }
-    }
-
-    getDefaultTranslations() {
-        // 默认翻译（如果API加载失败时使用）
-        const defaults = {
-            zh_CN: {
-                app: { title: "击剑AI智能体平台" },
-                video: { title: "YouTube视频播放", placeholder: "请输入YouTube视频链接...", load_button: "加载视频" },
-                chat: { title: "AI击剑专家", placeholder: "输入您的问题..." },
-                danmaku: { title: "弹幕控制", placeholder: "输入弹幕内容...", send: "发送" }
-            },
-            en_US: {
-                app: { title: "Fencing AI Platform" },
-                video: { title: "YouTube Video Player", placeholder: "Enter YouTube video link...", load_button: "Load Video" },
-                chat: { title: "AI Fencing Expert", placeholder: "Enter your question..." },
-                danmaku: { title: "Danmaku Control", placeholder: "Enter danmaku content...", send: "Send" }
-            }
-        };
-        return defaults[this.currentLanguage] || {};
-    }
-
-    t(key, defaultValue = '') {
-        const keys = key.split('.');
-        let value = this.translations;
-        
-        for (const k of keys) {
-            if (value && typeof value === 'object' && k in value) {
-                value = value[k];
-            } else {
-                return defaultValue || key;
-            }
-        }
-        
-        return typeof value === 'string' ? value : (defaultValue || key);
-    }
-
-    setLanguage(lang) {
-        this.currentLanguage = lang;
-        localStorage.setItem('language', lang);
-        this.loadTranslations().then(() => {
-            this.applyTranslations();
-            this.updateLanguageSwitcher();
         });
     }
 
-    applyTranslations() {
-        // 更新所有带有 data-i18n 属性的元素
-        document.querySelectorAll('[data-i18n]').forEach(element => {
-            const key = element.getAttribute('data-i18n');
-            const translation = this.t(key);
-            if (translation) {
-                element.textContent = translation;
-            }
-        });
+    document.addEventListener('DOMContentLoaded', () => {
+        bindLangToggle();
+        applyLang(getLang());
+    });
 
-        // 更新所有带有 data-i18n-placeholder 属性的元素
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-            const key = element.getAttribute('data-i18n-placeholder');
-            const translation = this.t(key);
-            if (translation) {
-                element.placeholder = translation;
-            }
-        });
-
-        // 更新标题
-        const titleElement = document.querySelector('title');
-        if (titleElement) {
-            titleElement.textContent = this.t('app.title', '击剑AI智能体平台');
-        }
-
-        // 更新HTML lang属性
-        document.documentElement.lang = this.currentLanguage === 'zh_CN' ? 'zh-CN' : 'en-US';
-    }
-
-    setupLanguageSwitcher() {
-        const langSwitch = document.getElementById('lang-switch');
-        if (langSwitch) {
-            langSwitch.addEventListener('click', () => {
-                const newLang = this.currentLanguage === 'zh_CN' ? 'en_US' : 'zh_CN';
-                this.setLanguage(newLang);
-                
-                // 通知后端更新语言
-                fetch('/api/set_language', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ language: newLang })
-                });
-            });
-        }
-        this.updateLanguageSwitcher();
-    }
-
-    updateLanguageSwitcher() {
-        const langCode = document.getElementById('lang-code');
-        if (langCode) {
-            langCode.textContent = this.currentLanguage === 'zh_CN' ? '中文' : 'English';
-        }
-    }
-
-    getCurrentLanguage() {
-        return this.currentLanguage;
-    }
-}
-
-// 全局i18n实例
-window.i18n = new I18n();
-
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', () => {
-    // i18n已经在构造函数中初始化
-    console.log('i18n initialized, current language:', window.i18n.getCurrentLanguage());
-});
+    window.uiI18n = { applyLang, getLang };
+})();
 

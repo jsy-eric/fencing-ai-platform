@@ -148,3 +148,4 @@ class KnowledgeRecommender:
         if interest and interest not in profile["interests"]:
             profile["interests"].append(interest)
 
+

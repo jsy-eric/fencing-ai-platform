@@ -1,264 +1,342 @@
-# Fencing AI Platform - Demo Script
+# 击剑AI智能体平台 - 演示脚本
 
-## Demo Preparation Checklist
+## 演示前准备
 
-### Pre-Demo Setup
-- [ ] Prepare a YouTube fencing competition video link (recommended: Olympic or World Championship videos)
-- [ ] Ensure network connection is stable
-- [ ] Open browser and access http://localhost:8080
-- [ ] Prepare demo questions and operation procedures
-- [ ] Test all features to ensure they work properly
+### 1. 环境检查（提前5分钟）
+- [ ] 确认服务已启动（http://localhost:8080）
+- [ ] 准备一个YouTube击剑比赛视频链接（建议：奥运会或世锦赛视频）
+- [ ] 打开浏览器，访问平台
+- [ ] 测试网络连接
+- [ ] 准备备用视频链接（以防第一个无法加载）
 
-### Recommended Demo Videos
-- Olympic fencing competition videos
-- World Championship foil/epee/sabre matches
-- Recommended duration: 3-5 minute video clips
+### 2. 推荐演示视频
+- **花剑比赛**：https://www.youtube.com/watch?v=示例ID
+- **重剑比赛**：https://www.youtube.com/watch?v=示例ID
+- **佩剑比赛**：https://www.youtube.com/watch?v=示例ID
 
 ---
 
-## Complete Demo Script (5 minutes)
+## 演示脚本（5分钟版本）
 
-### 【00:00-00:30】Opening Introduction
+### 【00:00-00:30】开场介绍
 
-**Action**: Open browser and display the platform homepage
+**操作**：展示平台首页
 
-**Script**:
-> "Hello everyone! Today I'm going to demonstrate an innovative fencing learning platform.
+**话术**：
+> "大家好！今天我要演示一个创新的击剑学习平台。
 > 
-> Imagine you're watching a fencing competition video and want to know the technical points of this move, or when to apply this tactic. Traditional methods require pausing the video and searching for information, which is very inefficient.
+> 想象一下：你在观看击剑比赛视频时，想知道这个动作的技术要点，或者这个战术的运用时机。传统方式需要暂停视频、打开搜索引擎、查找资料，效率很低。
 > 
-> Our platform solves this problem—**automatically pushing professional fencing knowledge while watching videos**.
+> 我们的平台解决了这个问题——**在观看视频的同时，自动推送击剑专业知识**。
 > 
-> Now let me demonstrate for you."
+> 现在让我为大家演示。"
 
 ---
 
-### 【00:30-01:10】Demo 1: Intelligent Video Analysis (40 seconds)
+### 【00:30-01:10】演示1：智能视频分析（40秒）
 
-**Operation Steps**:
+**操作步骤**：
 
-1. **Load Video** (10 seconds)
-   - Click on the YouTube link input box
-   - Paste the prepared video link
-   - Click the "Load Video" button
-   - **Script**: "First, I'll load a fencing competition video."
+1. **加载视频**（10秒）
+   - 点击YouTube链接输入框
+   - 粘贴准备好的视频链接
+   - 点击"加载视频"按钮
+   - 等待视频加载
 
-2. **Show Timeline Annotation** (15 seconds)
-   - Wait for video to load
-   - Point to the timeline area
-   - **Script**: "Look, the system automatically detected key moments—opening, critical points, and ending—and marked them on the timeline."
-   - Click on a time point to show the jump effect
-   - **Script**: "Clicking on time points allows quick navigation."
+   **话术**：
+   > "首先，我加载一个击剑比赛视频。"
+   > （等待加载）
+   > "视频已加载完成。"
 
-3. **Show Knowledge Cards** (15 seconds)
-   - Wait for knowledge cards to pop up automatically (or trigger manually)
-   - **Script**: "At key moments, the system automatically displays knowledge cards showing technical points and rule explanations."
-   - Show card content
-   - **Script**: "This way, you learn while watching, without needing to pause and search for information."
+2. **展示时间轴标注**（15秒）
+   - 指向时间轴区域
+   - 说明关键时刻标注
+   - 点击一个时间点，展示跳转效果
 
----
+   **话术**：
+   > "看这里，系统自动检测了视频的关键时刻——开局、关键阶段、结束时刻，并在时间轴上进行了标注。
+   > 
+   > 我点击这个时间点..."
+   > （点击）
+   > "视频自动跳转，并显示相关知识。"
 
-### 【01:10-01:50】Demo 2: Real-time Action Recognition (40 seconds)
+3. **展示知识卡片**（15秒）
+   - 等待知识卡片弹出（如果没有自动弹出，手动触发）
+   - 展示卡片内容
+   - 演示收藏功能
 
-**Operation Steps**:
-
-1. **Show Action Analysis Panel** (15 seconds)
-   - Point to the "Action Analysis" panel on the right
-   - **Script**: "The system automatically analyzes video frames every 5 seconds to identify technical actions."
-   - Show action information in the panel
-   - **Script**: "Look, it identified a 'disengage' action and provided technical points and common mistake analysis."
-
-2. **Show Intelligent Danmaku** (15 seconds)
-   - Point to the danmaku area
-   - **Script**: "The system also generates intelligent danmaku to explain the current action."
-   - Wait for or trigger danmaku display
-   - **Script**: "It's like having a coach providing real-time commentary."
-
-3. **Show Scene Recognition** (10 seconds)
-   - **Script**: "The system can also identify competition type, weapon type, and match stage."
-   - Point to relevant information display area
-   - **Script**: "Based on the scene, it pushes relevant professional knowledge."
+   **话术**：
+   > "看，系统自动弹出了知识卡片，显示当前时刻的技术要点、规则解释。
+   > 
+   > 我可以收藏这个知识点，方便以后复习。
+   > 
+   > 这就是我们的第一个核心功能——**智能视频分析，关键时刻自动推送知识**。"
 
 ---
 
-### 【01:50-02:40】Demo 3: Personalized Learning System (50 seconds)
+### 【01:10-01:50】演示2：实时动作识别（40秒）
 
-**Operation Steps**:
+**操作步骤**：
 
-1. **Show Knowledge Recommendations** (20 seconds)
-   - Point to the "Recommended Learning" area
-   - **Script**: "Based on the current viewing content, the system intelligently recommends relevant knowledge."
-   - Show recommendation list
-   - **Script**: "These recommendations consider your learning level, progressing from beginner to advanced step by step."
+1. **展示动作分析面板**（15秒）
+   - 指向侧边栏的"动作分析"区域
+   - 说明实时分析功能
 
-2. **Show Learning Path** (15 seconds)
-   - **Script**: "The system tracks your learning progress and recommends the next learning topic."
-   - Show learning path information
-   - **Script**: "This helps you build a complete learning system."
+   **话术**：
+   > "接下来看第二个功能——实时动作识别。
+   > 
+   > 系统每5秒自动分析视频帧，识别技术动作。
+   > 
+   > 看侧边栏这里，实时显示当前动作的分析结果。"
 
-3. **Show Interactive Q&A** (15 seconds)
-   - Wait for or trigger interactive Q&A
-   - **Script**: "The system automatically asks questions every 30 seconds to test your understanding."
-   - Show Q&A interface
-   - **Script**: "Immediate feedback after answering helps reinforce learning."
+2. **展示动作识别结果**（15秒）
+   - 展示动作名称、置信度
+   - 展示技术要点、常见错误
+   - 说明智能弹幕
+
+   **话术**：
+   > "系统识别出这是一个'转移刺'动作，置信度75%。
+   > 
+   > 这里显示了技术要点：假动作要逼真、转移要快速、观察对手反应。
+   > 
+   > 同时，系统还生成了智能弹幕，解释这个动作。"
+   > （指向弹幕区域）
+
+3. **总结功能**（10秒）
+
+   **话术**：
+   > "这就是第二个核心功能——**实时动作识别与解说，就像有教练在身边指导**。"
 
 ---
 
-### 【02:40-03:40】Technical Highlights (1 minute)
+### 【01:50-02:40】演示3：个性化学习系统（50秒）
 
-**Action**: Switch to technical architecture diagram or code display (if PPT available)
+**操作步骤**：
 
-**Script**:
-> "Next, let me briefly introduce the technical highlights.
+1. **展示知识推荐**（20秒）
+   - 指向"推荐学习"区域
+   - 说明推荐逻辑
+
+   **话术**：
+   > "第三个功能是个性化学习系统。
+   > 
+   > 系统根据当前观看的内容，智能推荐相关知识。
+   > 
+   > 看这里，推荐了'花剑技术'、'比赛规则'等相关内容。
+   > 
+   > 这些推荐考虑了用户的学习水平，从初级到高级都有。"
+
+2. **展示学习路径**（15秒）
+   - 说明学习路径跟踪
+   - 展示进度更新
+
+   **话术**：
+   > "系统还会跟踪学习进度，推荐下一个学习主题。
+   > 
+   > 比如，如果你完成了基础技术的学习，系统会推荐进阶战术。"
+
+3. **展示互动问答**（15秒）
+   - 等待或触发互动问题
+   - 演示问答功能
+
+   **话术**：
+   > "系统每30秒会自动提问，测试你的理解程度。
+   > 
+   > 看，这里出现了一个问题：'你知道直刺技术的关键要点吗？'
+   > 
+   > 我选择答案后，系统会立即反馈，并给出详细解释。
+   > 
+   > 这就是第三个核心功能——**个性化学习路径，互动式知识问答**。"
+
+---
+
+### 【02:40-03:40】技术亮点（1分钟）
+
+**操作**：切换到技术架构图或PPT
+
+**话术**：
+> "接下来，我简要介绍一下技术亮点。
 > 
-> **Multimodal AI Analysis**:
-> - Real-time video frame analysis to identify actions and scenes
-> - Multi-dimensional analysis combining video, audio, and text
-> - Intelligent recommendation algorithm for context-based personalized recommendations
+> **多模态AI分析**：
+> - 系统结合视频帧分析、场景理解、动作识别
+> - 实时分析，每5秒更新一次
 > 
-> **Core Technology Stack**:
-> - Backend: Flask framework with 9 core analysis modules
-> - AI Capabilities: DeepSeek integration, intent recognition, knowledge base management
-> - Frontend: Component-based architecture with real-time interactive experience
+> **核心技术栈**：
+> - 后端：Flask框架，9个核心模块，集成DeepSeek AI
+> - 前端：原生JavaScript，组件化架构
+> - AI能力：意图识别、知识库管理、上下文理解
 > 
-> **Data Overview**:
-> - 10 core features
-> - 9 API endpoints
-> - 5 backend analysis modules
-> - 4 frontend interaction systems"
+> **数据展示**：
+> - 10个核心功能
+> - 9个API端点
+> - 5个后端分析模块
+> - 4个前端交互系统
+> 
+> 这些技术确保了系统的智能性和稳定性。"
 
 ---
 
-### 【03:40-04:10】Application Value (30 seconds)
+### 【03:40-04:10】应用价值（30秒）
 
-**Script**:
-> "The application value of this platform is reflected in:
+**操作**：展示应用场景
+
+**话术**：
+> "这个平台的应用价值体现在三个方面：
 > 
-> **Learning Scenarios**:
-> - Lower learning barriers: Automatic learning while watching videos, no need for additional searching
-> - Improve learning efficiency: Real-time push of relevant knowledge, saving time
-> - Personalized learning: Content recommendations based on level, progressive learning
+> **学习场景**：
+> - 降低学习门槛：观看视频时自动学习，无需额外查找
+> - 提升学习效率：实时推送相关知识，节省时间
+> - 个性化学习：根据水平推荐内容，循序渐进
 > 
-> **Social Value**:
-> - Promote fencing: Help more people understand and learn fencing
-> - Assist teaching: Provide intelligent teaching tools for coaches
-> - Knowledge preservation: Systematically save and disseminate fencing knowledge"
+> **社会价值**：
+> - 推广击剑运动：让更多人了解和学习击剑
+> - 辅助教学：为教练提供智能教学工具
+> - 知识传承：系统化保存和传播击剑知识"
 
 ---
 
-### 【04:10-04:40】Conclusion (30 seconds)
+### 【04:10-04:40】总结（30秒）
 
-**Script**:
-> "To summarize:
+**话术**：
+> "总结一下，我们的平台实现了**观看视频时自动推送专业知识**，这是击剑学习方式的创新突破。
 > 
-> Our platform achieves **automatic push of professional knowledge while watching videos**, which is an innovative breakthrough in fencing learning methods.
+> 通过多模态AI分析、智能推荐算法、实时交互体验，为用户提供专业、便捷的学习服务。
 > 
-> Through multimodal AI analysis, intelligent recommendation algorithms, and real-time interactive experiences, we provide users with professional and convenient learning services.
+> 未来我们将集成真实的计算机视觉模型，支持更多视频平台，让击剑学习更加智能、高效。
 > 
-> In the future, we will integrate real computer vision models, support more video platforms, and make fencing learning more intelligent and efficient.
+> 谢谢大家！欢迎体验我们的平台，让击剑学习更智能、更有趣！"
+
+---
+
+## 演示技巧
+
+### 1. 时间控制
+- **严格计时**：每个部分都要控制在规定时间内
+- **提前准备**：熟悉每个操作步骤，减少操作时间
+- **留出缓冲**：预留10-15秒应对突发情况
+
+### 2. 操作流畅性
+- **提前测试**：演示前完整测试一遍所有功能
+- **备用方案**：准备备用视频链接和操作路径
+- **错误处理**：如果某个功能不工作，快速跳过，继续演示
+
+### 3. 语言表达
+- **简洁有力**：每句话都要有信息量
+- **重点强调**：用重音强调"自动推送"、"实时分析"等关键词
+- **数据支撑**：用数字说话（10个功能、9个API等）
+
+### 4. 互动技巧
+- **眼神交流**：演示时注意与观众眼神交流
+- **提问互动**：可以在开场提问，增加互动
+- **观察反应**：根据观众反应调整演示节奏
+
+---
+
+## 常见问题应对
+
+### Q1: 如果视频加载失败？
+**应对**：
+> "让我尝试另一个视频链接..."
+> （快速切换到备用链接）
+> 或者：
+> "由于网络原因，视频加载较慢。让我展示一下系统的其他功能..."
+
+### Q2: 如果知识卡片没有自动弹出？
+**应对**：
+> "系统会在关键时刻自动弹出知识卡片。让我手动触发一下..."
+> （点击时间轴上的标注点）
+> "看，知识卡片出现了。"
+
+### Q3: 如果动作识别没有显示？
+**应对**：
+> "动作识别需要视频播放一段时间后才会显示。让我快进到有动作的部分..."
+> 或者：
+> "动作识别功能正在后台运行，让我展示一下推荐的知识内容..."
+
+### Q4: 如果网络连接有问题？
+**应对**：
+> "由于网络原因，部分功能可能响应较慢。让我展示一下系统的核心功能..."
+> （切换到离线可用的功能）
+
+---
+
+## 演示检查清单
+
+### 演示前（提前10分钟）
+- [ ] 服务已启动并正常运行
+- [ ] 浏览器已打开并访问平台
+- [ ] 准备至少2个备用视频链接
+- [ ] 测试所有核心功能是否正常
+- [ ] 检查网络连接
+- [ ] 准备好PPT或演示材料
+
+### 演示中
+- [ ] 严格按照时间分配
+- [ ] 重点展示3个核心功能
+- [ ] 强调"自动推送"创新点
+- [ ] 用数据支撑（10个功能等）
+- [ ] 保持流畅的操作
+
+### 演示后
+- [ ] 准备回答观众问题
+- [ ] 提供项目GitHub链接
+- [ ] 收集反馈意见
+
+---
+
+## 备用演示方案（如果时间不够）
+
+如果演示时间被压缩到3分钟：
+
+1. **快速演示**（2分钟）
+   - 加载视频（20秒）
+   - 展示时间轴和知识卡片（40秒）
+   - 展示动作识别（40秒）
+   - 展示知识推荐（20秒）
+
+2. **技术亮点**（30秒）
+   - 简要介绍技术栈
+   - 强调10个核心功能
+
+3. **总结**（30秒）
+   - 核心创新点
+   - 应用价值
+
+---
+
+## 演示话术模板
+
+### 开场模板
+> "大家好！今天我要演示[项目名称]。
 > 
-> Thank you! Welcome to experience our platform and make fencing learning smarter and more fun!"
+> [问题引入]
+> 
+> 我们的平台解决了这个问题——[核心价值]。
+> 
+> 现在让我为大家演示。"
+
+### 功能演示模板
+> "这是[功能名称]。
+> 
+> [操作说明]
+> 
+> 看，[展示效果]。
+> 
+> 这就是[功能价值]。"
+
+### 总结模板
+> "总结一下，我们的平台实现了[核心创新]。
+> 
+> 通过[技术优势]，为用户提供[用户价值]。
+> 
+> 未来我们将[未来规划]。
+> 
+> 谢谢大家！"
 
 ---
 
-## Quick Demo Version (If time is limited)
+**演示脚本总字数**：约1500字
+**预计演示时间**：5分钟
+**建议语速**：正常语速，重点部分可稍慢
 
-### Condensed Version (3 minutes)
-
-**【00:00-00:20】Opening**
-- Quick introduction of problem and solution
-
-**【00:20-01:30】Core Demo**
-- Load video (20 seconds)
-- Show timeline and knowledge cards (30 seconds)
-- Show action recognition and danmaku (30 seconds)
-- Show knowledge recommendations (20 seconds)
-
-**【01:30-02:30】Technical Highlights**
-- Brief introduction of technical architecture and data
-
-**【02:30-03:00】Conclusion**
-- Core value and future prospects
-
----
-
-## Demo Tips
-
-### 1. Operation Fluency
-- **Pre-testing**: Ensure all features work properly
-- **Backup plan**: Prepare screenshots or recordings in case of network issues
-- **Shortcuts**: Familiarize with browser operations to improve demo efficiency
-
-### 2. Language Expression
-- **Pace control**: Maintain moderate speaking pace, about 200 words/minute
-- **Emphasis**: Use stress to emphasize key terms like "automatic push", "real-time analysis"
-- **Interactive questions**: You can ask "What do you think of this feature?"
-
-### 3. Visual Guidance
-- **Mouse pointer**: Use mouse pointer to guide audience attention
-- **Highlight display**: Enlarge browser window to highlight key areas
-- **Split screen**: If possible, display code and effects side by side
-
-### 4. Handling Emergencies
-- **Network issues**: Prepare recorded videos as backup
-- **Feature malfunction**: Prepare screenshots to explain feature effects
-- **Time shortage**: Prioritize core features, technical details can be omitted
-
----
-
-## Demo Checklist
-
-### Before Demo
-- [ ] Service running normally (http://localhost:8080)
-- [ ] All features tested and working
-- [ ] Demo video link prepared
-- [ ] Browser window size appropriate
-- [ ] Network connection stable
-
-### During Demo
-- [ ] Smooth operation, no lag
-- [ ] Accurate time control
-- [ ] All key features demonstrated
-- [ ] Audience can understand
-
-### After Demo
-- [ ] Ready to answer audience questions
-- [ ] Provide experience link or QR code
-- [ ] Collect feedback
-
----
-
-## Handling Common Issues
-
-**Q: What if the video loads very slowly?**
-A: Pre-load the video, or use recorded video for demonstration
-
-**Q: What if a feature doesn't trigger?**
-A: Prepare manual trigger methods, or use screenshots to explain
-
-**Q: What if the network disconnects?**
-A: Use local recorded video, or show feature screenshots
-
-**Q: What if the audience asks about technical details?**
-A: Give brief answers, detailed content can be discussed after the session
-
----
-
-## Demo Script Templates
-
-### Opening Template
-"Hello everyone! Today I'm going to demonstrate [Project Name], which solves [Core Problem] and achieves [Core Value] through [Core Feature]."
-
-### Feature Demo Template
-"Now let me demonstrate [Feature Name]. First [Operation 1], then [Operation 2]. Look, the system automatically [Effect Display]. This way [User Value]."
-
-### Technical Introduction Template
-"In terms of technical implementation, we adopted [Technology 1] and [Technology 2], achieving [Technical Advantage] and supporting [Feature Characteristics]."
-
-### Conclusion Template
-"To summarize, our platform solves [Core Problem] through [Core Innovation], providing users with [Core Value]. In the future, we will [Future Plans]."
-
----
-
-**Total Demo Script Duration**: 5 minutes (can be adjusted based on actual situation)
 

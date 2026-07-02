@@ -109,3 +109,4 @@ class LearningPathTracker:
                         if path_id not in progress["completed_paths"]:
                             progress["completed_paths"].append(path_id)
 
+

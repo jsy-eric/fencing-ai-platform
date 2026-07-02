@@ -3,15 +3,18 @@ class YouTubeSystem {
     constructor() {
         this.currentVideo = null;
         this.player = null;
+        this.apiReadyPromise = null;
         this.videoContainer = document.getElementById('video-player');
         this.urlInput = document.getElementById('youtube-url');
+        this.weaponSelect = document.getElementById('weapon-select');
         this.loadButton = document.getElementById('load-video');
         this.init();
     }
 
     init() {
         this.bindEvents();
-        // 移除YouTube API加载，使用简单的iframe嵌入
+        // 使用 YouTube IFrame Player API（用于获取播放时间等信息）
+        this.ensureYouTubeAPIReady();
     }
 
     bindEvents() {
@@ -33,7 +36,36 @@ class YouTubeSystem {
         });
     }
 
-    // 移除YouTube API加载方法，使用简单的iframe嵌入
+    ensureYouTubeAPIReady() {
+        if (this.apiReadyPromise) return this.apiReadyPromise;
+
+        // 已存在 YT.Player
+        if (window.YT && window.YT.Player) {
+            this.apiReadyPromise = Promise.resolve();
+            return this.apiReadyPromise;
+        }
+
+        this.apiReadyPromise = new Promise((resolve) => {
+            const existing = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+            if (!existing) {
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                document.head.appendChild(tag);
+            }
+
+            // 兼容多个初始化者：保留原回调
+            const previous = window.onYouTubeIframeAPIReady;
+            window.onYouTubeIframeAPIReady = () => {
+                try {
+                    if (typeof previous === 'function') previous();
+                } finally {
+                    resolve();
+                }
+            };
+        });
+
+        return this.apiReadyPromise;
+    }
 
     validateYouTubeUrl() {
         const url = this.urlInput.value.trim();
@@ -95,20 +127,15 @@ class YouTubeSystem {
             const videoInfo = await this.parseYouTubeUrl(url);
             
             if (videoInfo) {
-                // 创建视频播放器
-                this.createVideoPlayer(videoInfo);
-                
                 // 更新当前视频信息
+                const weapon = this.weaponSelect ? this.weaponSelect.value : 'auto';
+                videoInfo.weapon = weapon; // auto / 花剑 / 重剑 / 佩剑
                 this.currentVideo = videoInfo;
-                
-                // 通知其他系统视频已加载
-                this.onVideoLoaded(videoInfo);
-                
-                // 初始化帧捕获
-                if (window.frameCapture) {
-                    window.frameCapture.init(this.player);
-                }
-                
+
+                // 创建视频播放器（等 API ready 后创建，确保可读取 currentTime）
+                await this.ensureYouTubeAPIReady();
+                await this.createVideoPlayer(videoInfo);
+
                 // 隐藏加载状态
                 this.hideLoadingState();
             } else {
@@ -177,44 +204,63 @@ class YouTubeSystem {
     }
 
     createVideoPlayer(videoInfo) {
-        // 清空视频容器
-        this.videoContainer.innerHTML = '';
-        
-        // 调试信息
-        console.log('创建视频播放器:', videoInfo);
-        console.log('嵌入URL:', videoInfo.embed_url);
-        
-        // 创建YouTube iframe
-        const iframe = document.createElement('iframe');
-        iframe.src = videoInfo.embed_url;
-        iframe.width = '100%';
-        iframe.height = '400';
-        iframe.frameBorder = '0';
-        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-        iframe.allowFullscreen = true;
-        iframe.title = videoInfo.title || 'YouTube视频';
-        
-        // 添加加载错误处理
-        iframe.onload = () => {
-            console.log('YouTube iframe 加载完成');
-        };
-        
-        iframe.onerror = () => {
-            console.error('YouTube iframe 加载失败');
-            this.showEmbedError(videoInfo);
-        };
-        
-        // 添加到容器
-        this.videoContainer.appendChild(iframe);
-        
-        // 存储iframe引用
-        this.player = iframe;
-        
-        // 添加视频信息显示
-        this.addVideoInfo(videoInfo);
-        
-        // 移除自动检查，让YouTube自然加载
-        // 只有在用户明确遇到问题时才显示错误页面
+        // 返回 Promise，确保 player ready
+        return new Promise((resolve) => {
+            // 清空视频容器
+            this.videoContainer.innerHTML = '';
+
+            // 播放器挂载点
+            const playerEl = document.createElement('div');
+            playerEl.id = 'yt-player';
+            this.videoContainer.appendChild(playerEl);
+
+            // 添加视频信息显示
+            this.addVideoInfo(videoInfo);
+
+            // 销毁旧播放器（如果存在）
+            try {
+                if (this.player && typeof this.player.destroy === 'function') {
+                    this.player.destroy();
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            // 创建 YouTube Player
+            this.player = new window.YT.Player('yt-player', {
+                videoId: videoInfo.id,
+                height: '400',
+                width: '100%',
+                playerVars: {
+                    rel: 0,
+                    modestbranding: 1,
+                    controls: 1,
+                    fs: 1,
+                    playsinline: 1
+                },
+                events: {
+                    onReady: () => {
+                        // 填充时长，给时间轴/监控系统使用
+                        try {
+                            const duration = this.player.getDuration?.();
+                            if (typeof duration === 'number' && duration > 0) {
+                                this.currentVideo.duration = duration;
+                            }
+                        } catch (e) {
+                            // ignore
+                        }
+
+                        // 通知其他系统视频已加载（确保 player 已就绪）
+                        this.onVideoLoaded(this.currentVideo);
+                        resolve();
+                    },
+                    onError: () => {
+                        this.showEmbedError(videoInfo);
+                        resolve();
+                    }
+                }
+            });
+        });
     }
 
     addVideoInfo(videoInfo) {
@@ -254,8 +300,8 @@ class YouTubeSystem {
     }
 
     onVideoLoaded(videoInfo) {
-        // 通知弹幕系统（如果存在onVideoLoaded方法）
-        if (window.danmakuSystem && typeof window.danmakuSystem.onVideoLoaded === 'function') {
+        // 通知弹幕系统
+        if (window.danmakuSystem) {
             window.danmakuSystem.onVideoLoaded(videoInfo);
         }
         

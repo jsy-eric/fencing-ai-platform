@@ -6,59 +6,29 @@ class VideoMonitor {
         this.analysisInterval = 5; // 每5秒分析一次
         this.currentVideo = null;
         this.frameAnalysisCache = new Map();
+
+        this.autoPushEnabled = this.loadAutoPushEnabled();
+        this.lastPushedKey = null; // 用于去重（内容级）
     }
 
     startMonitoring(videoInfo) {
+        // 重新开始前先清理
+        this.stopMonitoring();
+
         this.currentVideo = videoInfo;
         this.lastAnalysisTime = 0;
+        this.frameAnalysisCache.clear();
         
         // 加载关键时刻
         if (window.timelineAnnotator) {
-            console.log('[VideoMonitor] 准备加载关键时刻，videoInfo:', videoInfo);
-            // 尝试多种方式获取视频时长
-            let duration = 0;
-            if (videoInfo.duration) {
-                // 如果duration是字符串（如"5:30"），需要转换
-                if (typeof videoInfo.duration === 'string') {
-                    duration = this.parseDurationString(videoInfo.duration);
-                } else {
-                    duration = parseInt(videoInfo.duration) || 0;
-                }
-            }
-            
-            // 如果还是没有时长，使用默认值
-            if (duration === 0) {
-                duration = 300; // 默认5分钟
-                console.warn('[VideoMonitor] 无法获取视频时长，使用默认值300秒');
-            }
-            
-            console.log(`[VideoMonitor] 视频时长: ${duration}秒，准备调用 loadKeyMoments`);
-            console.log(`[VideoMonitor] timelineAnnotator 对象:`, window.timelineAnnotator);
-            console.log(`[VideoMonitor] loadKeyMoments 方法:`, typeof window.timelineAnnotator.loadKeyMoments);
-            
-            if (typeof window.timelineAnnotator.loadKeyMoments === 'function') {
-                window.timelineAnnotator.loadKeyMoments(videoInfo.url, duration);
-                console.log('[VideoMonitor] loadKeyMoments 已调用');
-            } else {
-                console.error('[VideoMonitor] loadKeyMoments 方法不存在！');
-            }
-        } else {
-            console.warn('[VideoMonitor] timelineAnnotator 不存在！');
-        }
-
-        // 初始化帧捕获
-        if (window.frameCapture && window.youtubeSystem && window.youtubeSystem.player) {
-            window.frameCapture.init(window.youtubeSystem.player);
-            // 开始捕获帧（每5-10秒）
-            window.frameCapture.startCapturing(this.analysisInterval);
+            const duration = videoInfo.duration || 300; // 默认5分钟
+            window.timelineAnnotator.loadKeyMoments(videoInfo.url, duration);
         }
 
         // 开始定期分析
         this.monitoringInterval = setInterval(() => {
             this.analyzeCurrentFrame();
         }, this.analysisInterval * 1000);
-        
-        console.log(`[VideoMonitor] 开始监控视频，每${this.analysisInterval}秒分析一次`);
     }
 
     stopMonitoring() {
@@ -66,13 +36,6 @@ class VideoMonitor {
             clearInterval(this.monitoringInterval);
             this.monitoringInterval = null;
         }
-        
-        // 停止帧捕获
-        if (window.frameCapture) {
-            window.frameCapture.stopCapturing();
-        }
-        
-        console.log('[VideoMonitor] 停止监控视频');
     }
 
     async analyzeCurrentFrame() {
@@ -84,43 +47,24 @@ class VideoMonitor {
         // 避免重复分析同一时间点
         const timeKey = Math.floor(currentTime / this.analysisInterval) * this.analysisInterval;
         if (this.frameAnalysisCache.has(timeKey)) {
-            // 即使已缓存，也显示结果
-            const cached = this.frameAnalysisCache.get(timeKey);
-            this.processAnalysis(cached, currentTime);
             return;
         }
 
         try {
-            // 尝试捕获当前帧
-            let frameImage = null;
-            if (window.frameCapture) {
-                const frameData = await window.frameCapture.captureFrame();
-                if (frameData && frameData.imageData) {
-                    frameImage = frameData.imageData;
-                }
-            }
-
             // 分析当前帧
-            const requestBody = {
-                frame_data: {
-                    timestamp: currentTime,
-                    video_url: this.currentVideo.url,
-                    video_id: this.currentVideo.id
-                },
-                current_time: currentTime
-            };
-
-            // 如果有图像数据，添加到请求中
-            if (frameImage) {
-                requestBody.frame_image = frameImage;
-            }
-
             const response = await fetch('/api/analyze_frame', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify({
+                    frame_data: {
+                        timestamp: currentTime,
+                        video_url: this.currentVideo.url,
+                        weapon: this.currentVideo.weapon || 'auto'
+                    },
+                    current_time: currentTime
+                })
             });
 
             const data = await response.json();
@@ -130,109 +74,23 @@ class VideoMonitor {
                 
                 // 处理分析结果
                 this.processAnalysis(analysis, currentTime);
-                
-                // 显示动作识别结果
-                if (data.action_detected) {
-                    this.displayActionRecognition(data);
-                }
             }
         } catch (error) {
             console.error('分析视频帧失败:', error);
         }
     }
 
-    displayActionRecognition(data) {
-        // 在界面上显示动作识别结果和技术解说
-        const actionPanel = document.getElementById('action-analysis-panel');
-        if (!actionPanel) return;
-
-        const action = data.analysis?.action || {};
-        const actionName = action.action || data.action_detected || '未知动作';
-        const confidence = (action.confidence || data.confidence || 0) * 100;
-        const technique = action.technique || '';
-        const keyPoints = action.key_points || [];
-        const analysis = action.analysis || '';
-        const category = action.category || '';
-        
-        // 获取技术解说
-        const commentary = data.commentary || data.detailed_commentary?.main_commentary || '';
-        const detailedCommentary = data.detailed_commentary || {};
-        const technicalAnalysis = detailedCommentary.technical_analysis || analysis;
-
-        // 创建动作识别显示（包含技术解说）
-        const actionHtml = `
-            <div class="action-recognition-result">
-                <div class="action-header">
-                    <h4 class="action-name">${actionName}</h4>
-                    <span class="action-category badge-${category.toLowerCase().replace(/\s/g, '-')}">${category}</span>
-                    <span class="action-confidence">置信度: ${confidence.toFixed(0)}%</span>
-                </div>
-                ${commentary ? `
-                    <div class="action-commentary">
-                        <div class="commentary-icon">🎙️</div>
-                        <p class="commentary-text">${commentary}</p>
-                    </div>
-                ` : ''}
-                <div class="action-technique">
-                    <p>${technique}</p>
-                </div>
-                ${technicalAnalysis ? `<div class="action-analysis"><p>${technicalAnalysis}</p></div>` : ''}
-                ${keyPoints.length > 0 ? `
-                    <div class="action-key-points">
-                        <strong>技术要点：</strong>
-                        <ul>
-                            ${keyPoints.map(point => `<li>${point}</li>`).join('')}
-                        </ul>
-                    </div>
-                ` : ''}
-                <div class="action-timestamp">
-                    <small>识别时间: ${this.formatTime(data.timestamp || 0)}</small>
-                </div>
-            </div>
-        `;
-
-        // 添加淡入动画
-        actionPanel.innerHTML = actionHtml;
-        actionPanel.classList.add('action-updated');
-        setTimeout(() => {
-            actionPanel.classList.remove('action-updated');
-        }, 1000);
-        
-        // 如果有解说，可以同时显示在弹幕区域
-        if (commentary && window.danmakuSystem) {
-            window.danmakuSystem.addDanmaku({
-                id: Date.now(),
-                text: `💬 ${commentary}`,
-                type: 'commentary',
-                timestamp: new Date().toISOString()
-            });
-        }
-    }
-
-    formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
-    parseDurationString(durationStr) {
-        // 解析时长字符串，如 "5:30" 或 "1:05:30"
-        try {
-            const parts = durationStr.split(':').map(Number);
-            if (parts.length === 2) {
-                // MM:SS
-                return parts[0] * 60 + parts[1];
-            } else if (parts.length === 3) {
-                // HH:MM:SS
-                return parts[0] * 3600 + parts[1] * 60 + parts[2];
-            }
-        } catch (e) {
-            console.warn('[VideoMonitor] 解析时长字符串失败:', durationStr);
-        }
-        return 0;
-    }
-
     processAnalysis(analysis, currentTime) {
+        if (!this.autoPushEnabled) {
+            // 仍然可以更新推荐栏/动作面板，但不推送卡片/聊天/弹幕
+            const action = analysis.action;
+            if (action && action.action) {
+                this.showActionAnalysis(action, currentTime);
+            }
+            this.recommendKnowledge(analysis.scene, currentTime);
+            return;
+        }
+
         // 1. 显示知识卡片
         const knowledgePoints = analysis.knowledge_points || [];
         knowledgePoints.forEach(point => {
@@ -241,10 +99,15 @@ class VideoMonitor {
                     type: point.type,
                     title: point.title,
                     content: point.content,
-                    tips: []
+                    tips: point.tips || []
                 });
             }
         });
+
+        // 1.1 同步推送到聊天区（用户无需提问也能看到）
+        if (knowledgePoints.length > 0) {
+            this.pushKnowledgeToChat(knowledgePoints, analysis, currentTime);
+        }
 
         // 2. 生成智能弹幕
         if (window.danmakuSystem) {
@@ -278,21 +141,17 @@ class VideoMonitor {
     }
 
     showActionAnalysis(action, currentTime) {
-        // 在侧边栏显示动作分析（使用i18n）
+        // 在侧边栏显示动作分析
         const actionPanel = document.getElementById('action-analysis-panel');
         if (actionPanel) {
-            const actionLabel = window.i18n ? window.i18n.t('action_analysis.action', '动作识别') : '动作识别';
-            const confidenceLabel = window.i18n ? window.i18n.t('action_analysis.confidence', '置信度') : '置信度';
-            const tipsLabel = window.i18n ? window.i18n.t('action_analysis.tips', '技术要点：') : '技术要点：';
-            
             actionPanel.innerHTML = `
                 <div class="action-analysis">
-                    <h4>${actionLabel}</h4>
+                    <h4>动作识别</h4>
                     <div class="action-name">${action.action}</div>
-                    <div class="action-confidence">${confidenceLabel}: ${(action.confidence * 100).toFixed(0)}%</div>
+                    <div class="action-confidence">置信度: ${(action.confidence * 100).toFixed(0)}%</div>
                     <p class="action-technique">${action.technique}</p>
                     <div class="action-tips">
-                        <strong>${tipsLabel}</strong>
+                        <strong>技术要点：</strong>
                         <ul>
                             ${action.key_points.map(point => `<li>${point}</li>`).join('')}
                         </ul>
@@ -310,7 +169,10 @@ class VideoMonitor {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    video_context: scene,
+                    video_context: {
+                        ...(scene || {}),
+                        action: (this.frameAnalysisCache.get(Math.floor(currentTime / this.analysisInterval) * this.analysisInterval) || {}).action
+                    },
                     user_id: 'default'
                 })
             });
@@ -327,9 +189,8 @@ class VideoMonitor {
     showRecommendations(recommendations) {
         const recPanel = document.getElementById('knowledge-recommendations');
         if (recPanel) {
-            const recTitle = window.i18n ? window.i18n.t('recommendations.title', '推荐学习') : '推荐学习';
             recPanel.innerHTML = `
-                <h4>${recTitle}</h4>
+                <h4>推荐学习</h4>
                 <ul class="recommendation-list">
                     ${recommendations.slice(0, 3).map(rec => `
                         <li class="recommendation-item" onclick="videoMonitor.showRecommendationDetail('${rec.id}')">
@@ -352,7 +213,8 @@ class VideoMonitor {
         if (window.youtubeSystem && window.youtubeSystem.player) {
             // 如果使用YouTube Player API
             if (window.youtubeSystem.player.getCurrentTime) {
-                return window.youtubeSystem.player.getCurrentTime();
+                const t = window.youtubeSystem.player.getCurrentTime();
+                return (typeof t === 'number' && !Number.isNaN(t)) ? t : null;
             }
         }
         
@@ -367,6 +229,52 @@ class VideoMonitor {
         
         return null;
     }
+
+    pushKnowledgeToChat(knowledgePoints, analysis, currentTime) {
+        if (!window.chatSystem || typeof window.chatSystem.addMessage !== 'function') return;
+
+        const top = knowledgePoints[0];
+        const scene = analysis.scene || {};
+        const sceneHint = [scene.weapon, scene.stage].filter(Boolean).join(' / ');
+
+        const key = `${Math.floor(currentTime / this.analysisInterval)}|${top.title || ''}|${top.content || ''}`;
+        if (this.lastPushedKey === key) return;
+        this.lastPushedKey = key;
+
+        const timeLabel = this.formatTime(currentTime);
+        const message = [
+            `【自动推送｜${timeLabel}${sceneHint ? `｜${sceneHint}` : ''}】`,
+            `${top.title ? `${top.title}\n` : ''}${top.content || ''}`.trim()
+        ].filter(Boolean).join('\n');
+
+        window.chatSystem.addMessage(message, 'ai');
+    }
+
+    formatTime(seconds) {
+        const s = Math.max(0, Math.floor(seconds || 0));
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${m.toString().padStart(2, '0')}:${r.toString().padStart(2, '0')}`;
+    }
+
+    loadAutoPushEnabled() {
+        try {
+            const v = localStorage.getItem('auto_push_knowledge');
+            if (v === null) return true;
+            return v === 'true';
+        } catch (e) {
+            return true;
+        }
+    }
+
+    setAutoPushEnabled(enabled) {
+        this.autoPushEnabled = !!enabled;
+        try {
+            localStorage.setItem('auto_push_knowledge', String(this.autoPushEnabled));
+        } catch (e) {
+            // ignore
+        }
+    }
 }
 
 // 初始化
@@ -374,6 +282,15 @@ window.videoMonitor = new VideoMonitor();
 
 // 当视频加载时自动开始监控
 document.addEventListener('DOMContentLoaded', () => {
+    // 绑定自动推送开关
+    const toggle = document.getElementById('auto-push-knowledge');
+    if (toggle && window.videoMonitor) {
+        toggle.checked = window.videoMonitor.autoPushEnabled;
+        toggle.addEventListener('change', (e) => {
+            window.videoMonitor.setAutoPushEnabled(e.target.checked);
+        });
+    }
+
     // 监听视频加载事件
     if (window.youtubeSystem) {
         const originalOnVideoLoaded = window.youtubeSystem.onVideoLoaded;
@@ -388,4 +305,5 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
 
