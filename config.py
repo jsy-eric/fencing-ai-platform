@@ -22,8 +22,15 @@ class Config:
     DEEPSEEK_TEMPERATURE = float(os.getenv('DEEPSEEK_TEMPERATURE', '0.7'))
     DEEPSEEK_BASE_URL = os.getenv('DEEPSEEK_BASE_URL', 'https://api.deepseek.com/v1')
     
+    # MiniMax配置
+    MINIMAX_API_KEY = os.getenv('MINIMAX_API_KEY', '')
+    MINIMAX_MODEL = os.getenv('MINIMAX_MODEL', 'abab6-chat')
+    MINIMAX_MAX_TOKENS = int(os.getenv('MINIMAX_MAX_TOKENS', '1000'))
+    MINIMAX_TEMPERATURE = float(os.getenv('MINIMAX_TEMPERATURE', '0.7'))
+    MINIMAX_BASE_URL = os.getenv('MINIMAX_BASE_URL', 'https://api.minimax.chat/v1')
+    
     # AI系统配置
-    USE_DEEPSEEK = os.getenv('USE_DEEPSEEK', 'True').lower() == 'true'
+    LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'deepseek')
     FALLBACK_TO_LOCAL = os.getenv('FALLBACK_TO_LOCAL', 'True').lower() == 'true'
     
     # 击剑AI专业提示词

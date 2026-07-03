@@ -12,7 +12,7 @@ class FencingAI:
         self.conversation_history = []
         self.fencing_terms = self._load_fencing_terms()
         self.competition_contexts = self._load_competition_contexts()
-        self.use_deepseek = self.config.USE_DEEPSEEK and bool(self.config.DEEPSEEK_API_KEY)
+        self.current_provider = self.config.LLM_PROVIDER
         self.fallback_to_local = self.config.FALLBACK_TO_LOCAL
         
     def _load_knowledge_base(self) -> Dict:
@@ -106,13 +106,13 @@ class FencingAI:
         # 分析用户意图
         intent = self._analyze_intent(user_message)
         
-        # 优先尝试使用DeepSeek（如果可用）
-        if self.use_deepseek:
-            print(f"[DeepSeek] 尝试调用DeepSeek API...")
+        # 优先尝试使用配置的LLM提供商（如果可用）
+        if self.current_provider and self._is_provider_available(self.current_provider):
+            print(f"[{self.current_provider.capitalize()}] 尝试调用{self.current_provider.capitalize()} API...")
             try:
-                response = self._get_deepseek_response(user_message, video_context)
+                response = self._call_llm_api(user_message, video_context)
                 if response and len(response.strip()) > 0:
-                    print(f"[DeepSeek] 成功获取回复，长度: {len(response)}")
+                    print(f"[{self.current_provider.capitalize()}] 成功获取回复，长度: {len(response)}")
                     # 记录AI回复
                     self.conversation_history.append({
                         "ai": response,
@@ -120,14 +120,14 @@ class FencingAI:
                     })
                     return response
                 else:
-                    print(f"[DeepSeek] 返回空响应，回退到本地知识库")
+                    print(f"[{self.current_provider.capitalize()}] 返回空响应，回退到本地知识库")
             except Exception as e:
-                # DeepSeek调用失败，如果启用了回退，继续使用本地知识库
-                print(f"[DeepSeek] 调用失败，使用本地知识库: {e}")
+                # LLM调用失败，如果启用了回退，继续使用本地知识库
+                print(f"[{self.current_provider.capitalize()}] 调用失败，使用本地知识库: {e}")
                 if not self.fallback_to_local:
                     raise e
         else:
-            print(f"[DeepSeek] DeepSeek未启用或未配置API密钥，使用本地知识库")
+            print(f"[{self.current_provider.capitalize() if self.current_provider else 'LLM'}] LLM提供商未启用或未配置API密钥，使用本地知识库")
         
         # 根据意图生成回复（使用本地知识库）
         if intent == "训练询问":
@@ -373,13 +373,46 @@ class FencingAI:
             "export_time": datetime.now().isoformat()
         }
     
-    def _get_deepseek_response(self, user_message: str, video_context: str = "") -> Optional[str]:
-        """使用DeepSeek API获取回复"""
-        if not self.config.DEEPSEEK_API_KEY:
-            print("[DeepSeek] API密钥未配置")
+    def _is_provider_available(self, provider: str) -> bool:
+        """检查LLM提供商是否可用"""
+        if provider == 'deepseek':
+            return bool(self.config.DEEPSEEK_API_KEY)
+        elif provider == 'minimax':
+            return bool(self.config.MINIMAX_API_KEY)
+        return False
+    
+    def _get_provider_config(self, provider: str) -> Dict:
+        """获取LLM提供商配置"""
+        if provider == 'deepseek':
+            return {
+                'api_key': self.config.DEEPSEEK_API_KEY,
+                'base_url': self.config.DEEPSEEK_BASE_URL,
+                'endpoint': '/chat/completions',
+                'model': self.config.DEEPSEEK_MODEL,
+                'max_tokens': self.config.DEEPSEEK_MAX_TOKENS,
+                'temperature': self.config.DEEPSEEK_TEMPERATURE
+            }
+        elif provider == 'minimax':
+            return {
+                'api_key': self.config.MINIMAX_API_KEY,
+                'base_url': self.config.MINIMAX_BASE_URL,
+                'endpoint': '/chat/completions',
+                'model': self.config.MINIMAX_MODEL,
+                'max_tokens': self.config.MINIMAX_MAX_TOKENS,
+                'temperature': self.config.MINIMAX_TEMPERATURE
+            }
+        return {}
+    
+    def _call_llm_api(self, user_message: str, video_context: str = "") -> Optional[str]:
+        """通用LLM API调用方法"""
+        provider = self.current_provider
+        config = self._get_provider_config(provider)
+        
+        if not config.get('api_key'):
+            print(f"[{provider.capitalize()}] API密钥未配置")
             return None
         
-        print(f"[DeepSeek] 开始调用API，API密钥长度: {len(self.config.DEEPSEEK_API_KEY)}")
+        print(f"[{provider.capitalize()}] 开始调用API，API密钥长度: {len(config['api_key'])}")
         
         try:
             # 构建系统提示词
@@ -387,11 +420,11 @@ class FencingAI:
             if video_context:
                 system_prompt += f"\n\n当前上下文：{video_context}"
             
-            # 构建消息历史（最近5轮对话）
+            # 构建消息历史（最近10条消息）
             messages = [{"role": "system", "content": system_prompt}]
             
             # 添加对话历史
-            recent_history = self.conversation_history[-10:]  # 最近10条消息
+            recent_history = self.conversation_history[-10:]
             for item in recent_history:
                 if "user" in item:
                     messages.append({"role": "user", "content": item["user"]})
@@ -401,31 +434,31 @@ class FencingAI:
             # 添加当前用户消息
             messages.append({"role": "user", "content": user_message})
             
-            # 调用DeepSeek API
+            # 调用LLM API
             headers = {
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.config.DEEPSEEK_API_KEY}"
+                "Authorization": f"Bearer {config['api_key']}"
             }
             
             payload = {
-                "model": self.config.DEEPSEEK_MODEL,
+                "model": config["model"],
                 "messages": messages,
-                "max_tokens": self.config.DEEPSEEK_MAX_TOKENS,
-                "temperature": self.config.DEEPSEEK_TEMPERATURE,
+                "max_tokens": config["max_tokens"],
+                "temperature": config["temperature"],
                 "stream": False
             }
             
-            print(f"[DeepSeek] 发送请求到: {self.config.DEEPSEEK_BASE_URL}/chat/completions")
-            print(f"[DeepSeek] 模型: {self.config.DEEPSEEK_MODEL}, 消息数: {len(messages)}")
+            print(f"[{provider.capitalize()}] 发送请求到: {config['base_url']}{config['endpoint']}")
+            print(f"[{provider.capitalize()}] 模型: {config['model']}, 消息数: {len(messages)}")
             
             response = requests.post(
-                f"{self.config.DEEPSEEK_BASE_URL}/chat/completions",
+                f"{config['base_url']}{config['endpoint']}",
                 headers=headers,
                 json=payload,
-                timeout=30  # 增加超时时间到30秒，给DeepSeek更多时间响应
+                timeout=30
             )
             
-            print(f"[DeepSeek] 收到响应，状态码: {response.status_code}")
+            print(f"[{provider.capitalize()}] 收到响应，状态码: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
@@ -434,54 +467,71 @@ class FencingAI:
                     if content:
                         return content
             else:
-                # API调用失败，记录错误但不抛出异常（让回退机制处理）
-                print(f"DeepSeek API调用失败: {response.status_code} - {response.text[:200]}")
+                print(f"{provider.capitalize()} API调用失败: {response.status_code} - {response.text[:200]}")
                 return None
                 
         except requests.exceptions.Timeout:
-            print("[DeepSeek] API请求超时（30秒），使用本地知识库")
+            print(f"[{provider.capitalize()}] API请求超时（30秒），使用本地知识库")
             return None
         except requests.exceptions.RequestException as e:
-            print(f"[DeepSeek] API请求异常: {e}")
+            print(f"[{provider.capitalize()}] API请求异常: {e}")
             return None
         except Exception as e:
-            print(f"[DeepSeek] API调用异常: {type(e).__name__}: {e}")
+            print(f"[{provider.capitalize()}] API调用异常: {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
             return None
         
         return None
     
-    def test_deepseek_connection(self) -> bool:
-        """测试DeepSeek连接"""
-        if not self.config.DEEPSEEK_API_KEY:
+    def test_provider_connection(self, provider: str) -> bool:
+        """测试LLM提供商连接"""
+        if not self._is_provider_available(provider):
             return False
         
         try:
+            original_provider = self.current_provider
+            self.current_provider = provider
+            
             test_message = "你好"
-            response = self._get_deepseek_response(test_message)
+            response = self._call_llm_api(test_message)
+            
+            self.current_provider = original_provider
             return response is not None and len(response) > 0
         except Exception as e:
-            print(f"DeepSeek连接测试失败: {e}")
+            print(f"{provider.capitalize()}连接测试失败: {e}")
             return False
     
-    def switch_to_deepseek(self):
-        """切换到DeepSeek模式"""
-        if self.config.DEEPSEEK_API_KEY:
-            self.use_deepseek = True
+    def test_deepseek_connection(self) -> bool:
+        """测试DeepSeek连接（兼容旧接口）"""
+        return self.test_provider_connection('deepseek')
+    
+    def switch_provider(self, provider: str) -> bool:
+        """切换LLM提供商"""
+        if provider in ['deepseek', 'minimax'] and self._is_provider_available(provider):
+            self.current_provider = provider
             return True
         return False
     
-    def switch_to_local_ai(self):
+    def switch_to_deepseek(self) -> bool:
+        """切换到DeepSeek模式（兼容旧接口）"""
+        return self.switch_provider('deepseek')
+    
+    def switch_to_minimax(self) -> bool:
+        """切换到MiniMax模式"""
+        return self.switch_provider('minimax')
+    
+    def switch_to_local_ai(self) -> bool:
         """切换到本地AI模式"""
-        self.use_deepseek = False
+        self.current_provider = None
         return True
     
     def get_ai_status(self) -> Dict:
         """获取AI系统状态"""
         return {
             "deepseek_available": bool(self.config.DEEPSEEK_API_KEY),
-            "use_deepseek": self.use_deepseek,
+            "minimax_available": bool(self.config.MINIMAX_API_KEY),
+            "current_provider": self.current_provider,
             "fallback_enabled": self.fallback_to_local,
             "conversation_count": len(self.conversation_history),
             "last_activity": self.conversation_history[-1]["timestamp"] if self.conversation_history else None
@@ -489,10 +539,10 @@ class FencingAI:
     
     def get_advanced_analysis(self, question: str, video_context: str = "") -> str:
         """获取高级分析"""
-        # 优先使用DeepSeek（如果可用）
-        if self.use_deepseek:
+        # 优先使用配置的LLM提供商（如果可用）
+        if self.current_provider and self._is_provider_available(self.current_provider):
             try:
-                response = self._get_deepseek_response(question, video_context)
+                response = self._call_llm_api(question, video_context)
                 if response:
                     return response
             except Exception:

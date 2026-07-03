@@ -10,6 +10,7 @@ class FencingAIPlatform {
     init() {
         this.bindEvents();
         this.loadFiedata();
+        this.loadAIStatus();
         this.setupWebSocket();
     }
 
@@ -29,6 +30,11 @@ class FencingAIPlatform {
 
         document.getElementById('danmaku-speed').addEventListener('change', (e) => {
             this.setDanmakuSpeed(e.target.value);
+        });
+
+        // AI提供商选择事件
+        document.getElementById('ai-provider-select').addEventListener('change', (e) => {
+            this.switchAIProvider(e.target.value);
         });
 
         // 自动生成弹幕事件
@@ -115,10 +121,16 @@ class FencingAIPlatform {
                         <span class="tournament">${result.tournament || '未知比赛'}</span>
                         <span class="date">${result.date || '未知日期'}</span>
                     </div>
+                    <div class="result-meta">
+                        <span class="location"><i class="fas fa-map-marker-alt"></i> ${result.location || ''}</span>
+                        <span class="weapon">${result.weapon || ''}</span>
+                        <span class="category">${result.category || ''}</span>
+                    </div>
+                    <div class="result-score">${result.score || ''}</div>
                     <div class="result-content">
-                        <div class="winner">🏆 ${result.winner || '未知'}</div>
-                        <div class="runner-up">🥈 ${result.runner_up || '未知'}</div>
-                        <div class="third">🥉 ${result.third || '未知'}</div>
+                        <div class="winner">🏆 ${result.winner || '未知'} ${result.winner_country ? `(${result.winner_country})` : ''}</div>
+                        <div class="runner-up">🥈 ${result.runner_up || '未知'} ${result.runner_up_country ? `(${result.runner_up_country})` : ''}</div>
+                        <div class="third">🥉 ${result.third || '未知'} ${result.third_country ? `(${result.third_country})` : ''}</div>
                     </div>
                 </div>
             `;
@@ -197,6 +209,68 @@ class FencingAIPlatform {
             }
         } catch (error) {
             console.error('生成AI弹幕失败:', error);
+        }
+    }
+
+    async loadAIStatus() {
+        try {
+            const response = await fetch('/api/ai_status');
+            const data = await response.json();
+            
+            if (data.success && data.status) {
+                const providerSelect = document.getElementById('ai-provider-select');
+                
+                if (data.status.current_provider) {
+                    providerSelect.value = data.status.current_provider;
+                }
+                
+                const options = providerSelect.options;
+                for (let i = 0; i < options.length; i++) {
+                    const value = options[i].value;
+                    if (value === 'deepseek') {
+                        options[i].disabled = !data.status.deepseek_available;
+                        options[i].title = data.status.deepseek_available ? 'DeepSeek AI' : 'DeepSeek未配置API密钥';
+                    } else if (value === 'minimax') {
+                        options[i].disabled = !data.status.minimax_available;
+                        options[i].title = data.status.minimax_available ? 'MiniMax AI' : 'MiniMax未配置API密钥';
+                    } else if (value === 'local') {
+                        options[i].disabled = false;
+                        options[i].title = '本地知识库';
+                    }
+                }
+                
+                console.log('AI状态:', data.status);
+            }
+        } catch (error) {
+            console.error('加载AI状态失败:', error);
+        }
+    }
+
+    async switchAIProvider(provider) {
+        try {
+            const response = await fetch('/api/switch_ai', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ai_type: provider })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification(`已切换到${provider} AI系统`, 'success');
+            } else {
+                this.showNotification(data.message || '切换失败', 'warning');
+                
+                const providerSelect = document.getElementById('ai-provider-select');
+                if (data.status && data.status.current_provider) {
+                    providerSelect.value = data.status.current_provider;
+                }
+            }
+        } catch (error) {
+            console.error('切换AI提供商失败:', error);
+            this.showNotification('切换失败，请稍后重试', 'error');
         }
     }
 

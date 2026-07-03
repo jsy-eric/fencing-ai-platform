@@ -12,7 +12,7 @@ class VideoAnalyzer:
     
     def __init__(self):
         self.config = Config()
-        self.use_deepseek = self.config.USE_DEEPSEEK and bool(self.config.DEEPSEEK_API_KEY)
+        self.current_provider = self.config.LLM_PROVIDER
         
     def detect_key_moments(self, video_url: str, video_duration: int = 0) -> List[Dict]:
         """检测视频关键时刻"""

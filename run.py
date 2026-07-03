@@ -34,7 +34,7 @@ def main():
     os.environ.setdefault('FLASK_DEBUG', 'True')
     
     print("🚀 启动Flask应用...")
-    print("📱 访问地址: http://localhost:5000")
+    print("📱 访问地址: http://localhost:8888")
     print("🛑 按 Ctrl+C 停止应用")
     print("=" * 50)
     
@@ -42,7 +42,7 @@ def main():
         # 启动应用
         app.run(
             host='0.0.0.0',
-            port=5000,
+            port=8888,
             debug=True,
             use_reloader=True
         )

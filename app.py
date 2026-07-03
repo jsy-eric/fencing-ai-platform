@@ -203,12 +203,28 @@ def get_ai_status():
 
 @app.route('/api/test_deepseek', methods=['POST'])
 def test_deepseek():
-    """测试DeepSeek连接"""
+    """测试DeepSeek连接（兼容旧接口）"""
     try:
         is_available = fencing_ai.test_deepseek_connection()
         return jsonify({
             'success': True,
             'deepseek_available': is_available
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/test_provider', methods=['POST'])
+def test_provider():
+    """测试LLM提供商连接"""
+    try:
+        data = request.get_json()
+        provider = data.get('provider', 'deepseek')
+        
+        is_available = fencing_ai.test_provider_connection(provider)
+        return jsonify({
+            'success': True,
+            'provider': provider,
+            'available': is_available
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -220,17 +236,27 @@ def switch_ai():
         data = request.get_json()
         ai_type = data.get('ai_type', 'auto')
         
+        success = False
         if ai_type == 'deepseek':
-            fencing_ai.switch_to_deepseek()
+            success = fencing_ai.switch_to_deepseek()
+        elif ai_type == 'minimax':
+            success = fencing_ai.switch_to_minimax()
         elif ai_type == 'local':
-            fencing_ai.switch_to_local_ai()
+            success = fencing_ai.switch_to_local_ai()
         
         status = fencing_ai.get_ai_status()
-        return jsonify({
-            'success': True,
-            'message': f'已切换到{ai_type} AI系统',
-            'status': status
-        })
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'已切换到{ai_type} AI系统',
+                'status': status
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'无法切换到{ai_type} AI系统，请检查API密钥配置',
+                'status': status
+            })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

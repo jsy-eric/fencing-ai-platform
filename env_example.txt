@@ -10,8 +10,15 @@ DEEPSEEK_API_KEY=your-deepseek-api-key-here
 DEEPSEEK_MODEL=deepseek-chat
 DEEPSEEK_MAX_TOKENS=1000
 DEEPSEEK_TEMPERATURE=0.7
-DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+
+# MiniMax配置
+MINIMAX_API_KEY=your-minimax-api-key-here
+MINIMAX_MODEL=abab6-chat
+MINIMAX_MAX_TOKENS=1000
+MINIMAX_TEMPERATURE=0.7
+MINIMAX_BASE_URL=https://api.minimax.chat/v1
 
 # AI系统配置
-USE_DEEPSEEK=True
+LLM_PROVIDER=deepseek
 FALLBACK_TO_LOCAL=True
