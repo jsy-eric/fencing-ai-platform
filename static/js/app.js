@@ -1,0 +1,484 @@
+// FencingAI - 主控脚本
+// 串联：tabs、剑种同步、侧边栏导航、快速提问、AI 状态/切换、深度分析、关键时刻、动态推荐
+(() => {
+    'use strict';
+
+    // ====== Tabs (with lazy load) ======
+    const state = {
+        fieLoaded: false,
+        insightLoaded: false,
+        knowledgeLoaded: false,
+        recsLoaded: false,
+        momentsLoaded: false,
+        currentWeapon: ''
+    };
+
+    function switchTab(target) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+        const tab = document.querySelector('.tab[data-tab="' + target + '"]');
+        if (tab) tab.classList.add('tab--active');
+
+        document.querySelectorAll('.panel').forEach(p => p.hidden = true);
+        const panel = document.getElementById('panel-' + target);
+        if (panel) panel.hidden = false;
+
+        if (target === 'fie' && !state.fieLoaded)        loadFieData();
+        if (target === 'action' && !state.insightLoaded) loadVideoInsight();
+        if (target === 'knowledge' && !state.knowledgeLoaded) loadKnowledge();
+    }
+
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
+
+    // ====== Sidebar toggle ======
+    document.getElementById('menu-toggle')?.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('sidebar--mini');
+        document.getElementById('main').classList.toggle('main--full');
+    });
+
+    // ====== Sidebar navigation ======
+    document.querySelectorAll('.sidebar__item[data-target]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = item.dataset.target;
+            document.querySelectorAll('.sidebar__item').forEach(i => i.classList.remove('sidebar__item--active'));
+            item.classList.add('sidebar__item--active');
+            if (target === 'home') {
+                switchTab('danmaku');
+            } else {
+                switchTab(target);
+            }
+        });
+    });
+
+    // ====== Weapon select (视频下拉) ======
+    document.getElementById('weapon-select')?.addEventListener('change', (e) => {
+        state.currentWeapon = e.target.value;
+        state.recsLoaded = false;
+        state.knowledgeLoaded = false;
+        if (!document.getElementById('panel-knowledge').hidden) loadKnowledge();
+        loadRecommendations();
+    });
+
+    // ====== Quick help buttons ======
+    document.querySelectorAll('.quick-help__btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const q = btn.dataset.q;
+            switchTab('chat');
+            setTimeout(() => {
+                const input = document.getElementById('chat-input');
+                if (input) {
+                    input.value = q;
+                    document.getElementById('send-chat')?.click();
+                }
+            }, 50);
+        });
+    });
+
+    // ====== Clear chat / Advanced analysis ======
+    document.getElementById('clear-chat')?.addEventListener('click', () => {
+        if (window.chatSystem?.clearChatHistory) {
+            window.chatSystem.clearChatHistory();
+        }
+    });
+
+    document.getElementById('advanced-analysis')?.addEventListener('click', async () => {
+        const lastUserMsg = getLastUserMessage();
+        if (!lastUserMsg) {
+            alert('请先向 AI 提问，然后我才能对问题进行深度分析。');
+            return;
+        }
+        await runAdvancedAnalysis(lastUserMsg);
+    });
+
+    function getLastUserMessage() {
+        const msgs = document.querySelectorAll('#chat-messages .msg--user');
+        for (let i = msgs.length - 1; i >= 0; i--) {
+            const p = msgs[i].querySelector('.msg__body p');
+            if (p && p.textContent.trim()) return p.textContent.trim();
+        }
+        return null;
+    }
+
+    async function runAdvancedAnalysis(question) {
+        const video = window.youtubeSystem?.getCurrentVideoInfo?.();
+        const videoContext = video?.title ? '正在观看：' + video.title : '击剑比赛';
+        if (window.chatSystem?.addMessage) {
+            window.chatSystem.addMessage('正在深度分析...', 'ai');
+        }
+        try {
+            const r = await fetch('/api/advanced_analysis', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ question, video_context: videoContext })
+            });
+            const data = await r.json();
+            if (!data.success) throw new Error(data.error || '分析失败');
+            window.chatSystem?.addMessage(data.analysis, 'ai');
+        } catch (e) {
+            window.chatSystem?.addMessage('深度分析失败：' + e.message, 'ai');
+        }
+    }
+
+    // ====== FIE Data ======
+    async function loadFieData() {
+        const el = document.getElementById('fie-data');
+        if (!el) return;
+        el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-spinner fa-spin"></i><p>加载中...</p></div>';
+        try {
+            const r = await fetch('/api/fie_data');
+            const data = await r.json();
+            if (!data.success) throw new Error(data.error || '加载失败');
+            state.fieLoaded = true;
+            el.classList.remove('panel__placeholder');
+            el.innerHTML = (data.results || []).map(res => `
+                <article class="fie-card">
+                    <div class="fie-card__head">
+                        <span class="fie-card__tournament">${escapeHtml(res.tournament)}</span>
+                        <span class="fie-card__date">${escapeHtml(res.date || '')}</span>
+                    </div>
+                    <div class="fie-card__meta">
+                        <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(res.location || '')}</span>
+                        <span class="fie-card__weapon">${escapeHtml(res.weapon || '')}</span>
+                        <span class="fie-card__cat">${escapeHtml(res.category || '')}</span>
+                    </div>
+                    <div class="fie-card__score">${escapeHtml(res.score || '')}</div>
+                    <div class="fie-card__podium">
+                        <div class="podium-row podium-row--gold">
+                            <span class="podium-rank">🥇</span>
+                            <span>${escapeHtml(res.winner || '-')} ${res.winner_country ? '(' + escapeHtml(res.winner_country) + ')' : ''}</span>
+                        </div>
+                        <div class="podium-row podium-row--silver">
+                            <span class="podium-rank">🥈</span>
+                            <span>${escapeHtml(res.runner_up || '-')} ${res.runner_up_country ? '(' + escapeHtml(res.runner_up_country) + ')' : ''}</span>
+                        </div>
+                        <div class="podium-row podium-row--bronze">
+                            <span class="podium-rank">🥉</span>
+                            <span>${escapeHtml(res.third || '-')} ${res.third_country ? '(' + escapeHtml(res.third_country) + ')' : ''}</span>
+                        </div>
+                    </div>
+                </article>
+            `).join('') || '<div class="panel__placeholder"><i class="fas fa-trophy"></i><p>暂无数据</p></div>';
+        } catch (e) {
+            el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-triangle-exclamation"></i><p>加载失败: ' + escapeHtml(e.message) + '</p></div>';
+        }
+    }
+    document.getElementById('refresh-fie')?.addEventListener('click', () => { state.fieLoaded = false; loadFieData(); });
+
+    // ====== Action Insight ======
+    async function loadVideoInsight() {
+        const el = document.getElementById('action-analysis-panel');
+        if (!el) return;
+        el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-spinner fa-spin"></i><p>分析中...</p></div>';
+        try {
+            const video = window.youtubeSystem?.getCurrentVideoInfo?.();
+            const weapon = document.getElementById('weapon-select')?.value;
+            const r = await fetch('/api/video_insight', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    video_url: video?.url || '',
+                    current_time: window.youtubeSystem?.getCurrentTime?.() || 0,
+                    weapon: weapon === 'auto' ? '' : (weapon || '')
+                })
+            });
+            const data = await r.json();
+            if (!data.success) throw new Error(data.error || '分析失败');
+            state.insightLoaded = true;
+            renderInsight(el, data);
+        } catch (e) {
+            el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-triangle-exclamation"></i><p>分析失败: ' + escapeHtml(e.message) + '</p></div>';
+        }
+    }
+
+    function renderInsight(el, data) {
+        const a = data.action || {};
+        const s = data.scene || {};
+        el.classList.remove('panel__placeholder');
+        el.innerHTML = `
+            <div class="insight-block">
+                <div class="insight-block__head">
+                    <span class="insight-tag">动作</span>
+                    <span class="insight-title">${escapeHtml(a.action || '未识别')}</span>
+                    <span class="insight-confidence">置信度 ${Math.round((a.confidence || 0) * 100)}%</span>
+                </div>
+                <p class="insight-text">${escapeHtml(a.analysis || '')}</p>
+                <p class="insight-text insight-text--dim">${escapeHtml(a.technique || '')}</p>
+                ${(a.tips && a.tips.length) ? `
+                <div class="insight-tips">
+                    <div class="insight-tips__label">要点</div>
+                    <ul>${a.tips.map(t => '<li>' + escapeHtml(t) + '</li>').join('')}</ul>
+                </div>` : ''}
+            </div>
+            <div class="insight-block">
+                <div class="insight-block__head">
+                    <span class="insight-tag insight-tag--blue">场景</span>
+                    <span class="insight-title">${escapeHtml(s.weapon || '未知')} · ${escapeHtml(s.competition_type || '比赛')} · ${escapeHtml(s.stage || '-')}</span>
+                </div>
+                ${(s.related_knowledge && s.related_knowledge.length) ? `
+                <div class="insight-list">
+                    ${s.related_knowledge.map(k => `
+                        <div class="insight-list__item">
+                            <strong>${escapeHtml(k.title)}</strong>
+                            <span>${escapeHtml(k.content)}</span>
+                        </div>
+                    `).join('')}
+                </div>` : ''}
+            </div>
+        `;
+    }
+    document.getElementById('refresh-insight')?.addEventListener('click', () => { state.insightLoaded = false; loadVideoInsight(); });
+
+    // ====== Knowledge Recommend ======
+    async function loadKnowledge() {
+        const el = document.getElementById('knowledge-recommendations');
+        if (!el) return;
+        el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-spinner fa-spin"></i><p>推荐中...</p></div>';
+        try {
+            const weapon = document.getElementById('weapon-select')?.value;
+            const r = await fetch('/api/knowledge_recommend', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    weapon: weapon === 'auto' ? '' : (weapon || ''),
+                    stage: '中段'
+                })
+            });
+            const data = await r.json();
+            if (!data.success) throw new Error(data.error || '推荐失败');
+            state.knowledgeLoaded = true;
+            el.classList.remove('panel__placeholder');
+            const recs = data.recommendations || [];
+            if (!recs.length) {
+                el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-lightbulb"></i><p>暂无推荐</p></div>';
+                return;
+            }
+            el.innerHTML = recs.map(k => `
+                <article class="kb-card">
+                    <div class="kb-card__head">
+                        <span class="kb-card__type">${escapeHtml(k.type || '知识')}</span>
+                        <span class="kb-card__level">${escapeHtml(k.level || '')}</span>
+                    </div>
+                    <h4 class="kb-card__title">${escapeHtml(k.title)}</h4>
+                    <p class="kb-card__content">${escapeHtml(k.content)}</p>
+                </article>
+            `).join('');
+        } catch (e) {
+            el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-triangle-exclamation"></i><p>推荐失败: ' + escapeHtml(e.message) + '</p></div>';
+        }
+    }
+    document.getElementById('refresh-knowledge')?.addEventListener('click', () => { state.knowledgeLoaded = false; loadKnowledge(); });
+
+    // ====== 右侧动态推荐 ======
+    async function loadRecommendations() {
+        const el = document.getElementById('rec-list');
+        const sub = document.getElementById('rec-sub');
+        if (!el) return;
+        el.innerHTML = '<div class="rec rec--placeholder"><i class="fas fa-spinner fa-spin"></i><p>推荐中...</p></div>';
+        try {
+            const weapon = document.getElementById('weapon-select')?.value;
+            const r = await fetch('/api/knowledge_recommend', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    weapon: weapon === 'auto' ? '' : (weapon || ''),
+                    stage: '中段'
+                })
+            });
+            const data = await r.json();
+            if (!data.success) throw new Error(data.error || '推荐失败');
+            state.recsLoaded = true;
+            const recs = data.recommendations || [];
+            if (sub) {
+                const w = (weapon && weapon !== 'auto') ? weapon : '综合';
+                sub.textContent = recs.length ? `${w} · ${recs.length} 条` : `${w} · 暂无`;
+            }
+            if (!recs.length) {
+                el.innerHTML = '<div class="rec rec--placeholder"><i class="fas fa-lightbulb"></i><p>暂无推荐</p></div>';
+                return;
+            }
+            const colors = {'花剑': '#3ea6ff', '重剑': '#ff5e5e', '佩剑': '#ffbb00'};
+            const icons = { '技术': 'fa-bolt', '规则': 'fa-shield-halved', '战术': 'fa-chess', '历史': 'fa-landmark', '训练': 'fa-dumbbell' };
+            el.innerHTML = recs.map(k => {
+                const cat = k.category || k.type || '知识';
+                const color = colors[cat] || '#aaaaaa';
+                const icon = icons[k.type] || 'fa-lightbulb';
+                return `
+                    <article class="rec" data-title="${escapeHtml(k.title)}">
+                        <div class="rec__thumb" style="--c:${color}">
+                            <i class="fas ${icon} rec__icon"></i>
+                            <span class="rec__cat">${escapeHtml(k.type || cat)}</span>
+                        </div>
+                        <div class="rec__info">
+                            <h4 class="rec__title">${escapeHtml(k.title)}</h4>
+                            <p class="rec__ch">${escapeHtml(k.content || '')}</p>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+            el.querySelectorAll('.rec').forEach(card => {
+                card.addEventListener('click', () => {
+                    const t = card.dataset.title;
+                    if (!t) return;
+                    switchTab('knowledge');
+                });
+            });
+        } catch (e) {
+            el.innerHTML = '<div class="rec rec--placeholder"><i class="fas fa-triangle-exclamation"></i><p>推荐失败</p></div>';
+        }
+    }
+
+    // ====== 关键时刻时间轴 ======
+    async function loadKeyMoments() {
+        const wrap = document.getElementById('moments');
+        const list = document.getElementById('moments-list');
+        const video = window.youtubeSystem?.getCurrentVideoInfo?.();
+        if (!wrap || !list) return;
+        if (!video || !video.url) {
+            wrap.hidden = true;
+            return;
+        }
+        list.innerHTML = '<div class="moments__placeholder"><i class="fas fa-spinner fa-spin"></i> 检测中...</div>';
+        wrap.hidden = false;
+        try {
+            const r = await fetch('/api/key_moments', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    video_url: video.url,
+                    duration: video.duration || 0
+                })
+            });
+            const data = await r.json();
+            if (!data.success) throw new Error(data.error || '检测失败');
+            state.momentsLoaded = true;
+            const moments = data.moments || [];
+            if (!moments.length) {
+                list.innerHTML = '<div class="moments__placeholder">未检测到关键时刻</div>';
+                return;
+            }
+            list.innerHTML = moments.map(m => `
+                <button class="moment" data-time="${m.time}">
+                    <span class="moment__time">${formatTime(m.time)}</span>
+                    <span class="moment__type moment__type--${escapeHtml(m.type || '阶段')}">${escapeHtml(m.type || '阶段')}</span>
+                    <span class="moment__desc">${escapeHtml(m.description || '')}</span>
+                </button>
+            `).join('');
+            list.querySelectorAll('.moment').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const t = parseFloat(btn.dataset.time || '0');
+                    if (window.youtubeSystem?.player?.seekTo) {
+                        try { window.youtubeSystem.player.seekTo(t, true); } catch (e) { /* ignore */ }
+                    }
+                });
+            });
+        } catch (e) {
+            list.innerHTML = '<div class="moments__placeholder">检测失败：' + escapeHtml(e.message) + '</div>';
+        }
+    }
+
+    function formatTime(s) {
+        s = Math.max(0, Math.floor(s || 0));
+        const m = Math.floor(s / 60);
+        const ss = (s % 60).toString().padStart(2, '0');
+        return `${m}:${ss}`;
+    }
+
+    // 在视频加载完成后拉关键时刻
+    const _origCreate = window.YouTubeSystem;
+    if (_origCreate) {
+        const _orig = _origCreate.prototype.createVideoPlayer;
+        _origCreate.prototype.createVideoPlayer = function (...args) {
+            const p = _orig.apply(this, args);
+            p && p.then?.(() => {
+                state.momentsLoaded = false;
+                loadKeyMoments();
+            });
+            return p;
+        };
+    }
+
+    // ====== AI Status pill + AI Switch ======
+    async function loadAIStatus() {
+        const pill = document.getElementById('ai-status-pill');
+        const text = document.getElementById('ai-status-text');
+        if (!pill || !text) return;
+        try {
+            const r = await fetch('/api/ai_status');
+            const data = await r.json();
+            if (!data.success || !data.status) throw new Error('获取失败');
+            const s = data.status;
+            updateAIStatusPill(s);
+            updateAISwitch(s);
+        } catch (e) {
+            text.textContent = '离线';
+            pill.className = 'top-bar__status top-bar__status--err';
+        }
+    }
+
+    function updateAIStatusPill(s) {
+        const text = document.getElementById('ai-status-text');
+        const pill = document.getElementById('ai-status-pill');
+        const active = s.current_provider;
+        if (s.deepseek_available) {
+            text.textContent = 'DeepSeek V3';
+            pill.className = 'top-bar__status top-bar__status--ok';
+        } else if (s.minimax_available) {
+            text.textContent = 'MiniMax';
+            pill.className = 'top-bar__status top-bar__status--ok';
+        } else {
+            text.textContent = '本地知识库';
+            pill.className = 'top-bar__status top-bar__status--local';
+        }
+    }
+
+    function updateAISwitch(s) {
+        document.querySelectorAll('#ai-switch .ai-switch__btn').forEach(btn => {
+            const ai = btn.dataset.ai;
+            btn.classList.toggle('ai-switch__btn--active', ai === s.current_provider);
+            btn.disabled = (ai === 'deepseek' && !s.deepseek_available) ||
+                           (ai === 'minimax' && !s.minimax_available);
+        });
+    }
+
+    document.querySelectorAll('#ai-switch .ai-switch__btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const ai = btn.dataset.ai;
+            btn.disabled = true;
+            try {
+                const r = await fetch('/api/switch_ai', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ ai_type: ai })
+                });
+                const data = await r.json();
+                if (data.status) {
+                    updateAIStatusPill(data.status);
+                    updateAISwitch(data.status);
+                }
+            } catch (e) {
+                console.error('AI 切换失败', e);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    });
+
+    // ====== Helpers ======
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // ====== Init ======
+    document.addEventListener('DOMContentLoaded', () => {
+        loadAIStatus();
+        loadRecommendations();
+    });
+})();

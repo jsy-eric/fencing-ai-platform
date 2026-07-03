@@ -1,18 +1,12 @@
 from flask import Flask, render_template, request, jsonify, session
-import requests
-import json
 import os
 from datetime import datetime
-import re
 from utils.fencing_ai import FencingAI
 from utils.danmaku_system import DanmakuSystem
 from utils.fie_data import FIEDataCollector
 from utils.youtube_parser import YouTubeParser
 from utils.video_analyzer import VideoAnalyzer
 from utils.knowledge_recommender import KnowledgeRecommender
-from utils.learning_path import LearningPathTracker
-from utils.multimodal_analyzer import MultimodalAnalyzer
-from utils.action_recognizer import FencingActionRecognizer
 from config import Config
 
 app = Flask(__name__)
@@ -26,216 +20,100 @@ fie_collector = FIEDataCollector()
 youtube_parser = YouTubeParser()
 video_analyzer = VideoAnalyzer()
 knowledge_recommender = KnowledgeRecommender()
-learning_path_tracker = LearningPathTracker()
-multimodal_analyzer = MultimodalAnalyzer()
-action_recognizer = FencingActionRecognizer()
 
+
+# ============================================================
+# 页面路由
+# ============================================================
 @app.route('/')
 def index():
-    """主页面"""
     return render_template('index.html')
 
+
+# ============================================================
+# YouTube 视频
+# ============================================================
 @app.route('/api/parse_youtube', methods=['POST'])
 def parse_youtube():
-    """解析YouTube链接"""
+    """解析 YouTube 链接，返回 embed URL 与缩略图"""
     try:
-        data = request.get_json()
-        video_url = data.get('video_url')
-        
+        data = request.get_json() or {}
+        video_url = (data.get('video_url') or '').strip()
         if not video_url:
             return jsonify({'error': '请提供YouTube链接'}), 400
-        
-        # 解析YouTube链接
+
         video_info = youtube_parser.parse_url(video_url)
-        
         if not video_info:
             return jsonify({'error': '无法解析YouTube链接'}), 400
-        
-        # 存储到session
+
         session['current_video'] = video_info
-        
-        return jsonify({
-            'success': True,
-            'video_info': video_info
-        })
-    
+        return jsonify({'success': True, 'video_info': video_info})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+# ============================================================
+# AI 聊天
+# ============================================================
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    """AI聊天接口"""
+    """AI 聊天接口（支持 DeepSeek / MiniMax / 本地知识库）"""
     try:
-        data = request.get_json()
-        user_message = data.get('message')
+        data = request.get_json() or {}
+        user_message = (data.get('message') or '').strip()
         video_context = data.get('video_context', '')
-        
         if not user_message:
             return jsonify({'error': '请提供消息内容'}), 400
-        
-        # 获取AI回复
-        ai_response = fencing_ai.get_response(
-            user_message, 
-            video_context=video_context
-        )
-        
+
+        ai_response = fencing_ai.get_response(user_message, video_context=video_context)
         return jsonify({
             'success': True,
             'response': ai_response,
             'timestamp': datetime.now().isoformat()
         })
-    
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/generate_danmaku', methods=['POST'])
-def generate_danmaku():
-    """生成弹幕"""
+
+@app.route('/api/advanced_analysis', methods=['POST'])
+def advanced_analysis():
+    """高级分析（结合多知识库类别）"""
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
+        question = (data.get('question') or '').strip()
         video_context = data.get('video_context', '')
-        user_message = data.get('user_message', '')
-        
-        # 生成AI弹幕
-        danmaku = danmaku_system.generate_ai_danmaku(
-            video_context=video_context,
-            user_message=user_message
-        )
-        
+        if not question:
+            return jsonify({'error': '请提供问题内容'}), 400
+
+        analysis = fencing_ai.get_advanced_analysis(question, video_context)
         return jsonify({
             'success': True,
-            'danmaku': danmaku,
+            'analysis': analysis,
             'timestamp': datetime.now().isoformat()
         })
-    
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/send_danmaku', methods=['POST'])
-def send_danmaku():
-    """发送用户弹幕"""
-    try:
-        data = request.get_json()
-        message = message = data.get('message')
-        user_id = data.get('user_id', 'anonymous')
-        
-        if not message:
-            return jsonify({'error': '请提供弹幕内容'}), 400
-        
-        # 添加弹幕到系统
-        danmaku_id = danmaku_system.add_user_danmaku(
-            message=message,
-            user_id=user_id
-        )
-        
-        return jsonify({
-            'success': True,
-            'danmaku_id': danmaku_id,
-            'timestamp': datetime.now().isoformat()
-        })
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
-@app.route('/api/get_danmaku', methods=['GET'])
-def get_danmaku():
-    """获取弹幕列表"""
-    try:
-        # 获取最近的弹幕
-        recent_danmaku = danmaku_system.get_recent_danmaku(limit=50)
-        
-        return jsonify({
-            'success': True,
-            'danmaku': recent_danmaku
-        })
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/fie_data', methods=['GET'])
-def get_fie_data():
-    """获取FIE数据"""
-    try:
-        # 获取最近的比赛结果
-        recent_results = fie_collector.get_recent_results()
-        
-        return jsonify({
-            'success': True,
-            'results': recent_results
-        })
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/video_analysis', methods=['POST'])
-def analyze_video():
-    """分析视频内容"""
-    try:
-        data = request.get_json()
-        video_url = data.get('video_url')
-        current_time = data.get('current_time', 0)
-        
-        # 分析视频内容（这里可以集成更复杂的视频分析）
-        analysis = fencing_ai.analyze_video_context(
-            video_url=video_url,
-            current_time=current_time
-        )
-        
-        return jsonify({
-            'success': True,
-            'analysis': analysis
-        })
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
+# ============================================================
+# AI 状态 / 切换
+# ============================================================
 @app.route('/api/ai_status', methods=['GET'])
 def get_ai_status():
-    """获取AI系统状态"""
     try:
         status = fencing_ai.get_ai_status()
-        return jsonify({
-            'success': True,
-            'status': status
-        })
+        return jsonify({'success': True, 'status': status})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/test_deepseek', methods=['POST'])
-def test_deepseek():
-    """测试DeepSeek连接（兼容旧接口）"""
-    try:
-        is_available = fencing_ai.test_deepseek_connection()
-        return jsonify({
-            'success': True,
-            'deepseek_available': is_available
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/test_provider', methods=['POST'])
-def test_provider():
-    """测试LLM提供商连接"""
-    try:
-        data = request.get_json()
-        provider = data.get('provider', 'deepseek')
-        
-        is_available = fencing_ai.test_provider_connection(provider)
-        return jsonify({
-            'success': True,
-            'provider': provider,
-            'available': is_available
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/switch_ai', methods=['POST'])
 def switch_ai():
-    """切换AI系统"""
+    """切换 AI 提供商"""
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         ai_type = data.get('ai_type', 'auto')
-        
+
         success = False
         if ai_type == 'deepseek':
             success = fencing_ai.switch_to_deepseek()
@@ -243,203 +121,156 @@ def switch_ai():
             success = fencing_ai.switch_to_minimax()
         elif ai_type == 'local':
             success = fencing_ai.switch_to_local_ai()
-        
+
         status = fencing_ai.get_ai_status()
-        if success:
-            return jsonify({
-                'success': True,
-                'message': f'已切换到{ai_type} AI系统',
-                'status': status
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'message': f'无法切换到{ai_type} AI系统，请检查API密钥配置',
-                'status': status
-            })
+        msg = f'已切换到{ai_type} AI系统' if success else f'无法切换到{ai_type}，请检查API密钥配置'
+        return jsonify({
+            'success': success,
+            'message': msg,
+            'status': status
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/advanced_analysis', methods=['POST'])
-def advanced_analysis():
-    """高级分析功能"""
+
+# ============================================================
+# 弹幕
+# ============================================================
+@app.route('/api/send_danmaku', methods=['POST'])
+def send_danmaku():
+    """发送用户弹幕"""
     try:
-        data = request.get_json()
-        question = data.get('question', '')
-        video_context = data.get('video_context', '')
-        
-        if not question:
-            return jsonify({'error': '请提供问题内容'}), 400
-        
-        analysis = fencing_ai.get_advanced_analysis(question, video_context)
-        
+        data = request.get_json() or {}
+        message = (data.get('message') or '').strip()
+        user_id = data.get('user_id', 'anonymous')
+        if not message:
+            return jsonify({'error': '请提供弹幕内容'}), 400
+
+        danmaku_id = danmaku_system.add_user_danmaku(message=message, user_id=user_id)
         return jsonify({
             'success': True,
-            'analysis': analysis,
+            'danmaku_id': danmaku_id,
             'timestamp': datetime.now().isoformat()
         })
-    
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ========== 新增API端点 ==========
 
-@app.route('/api/detect_key_moments', methods=['POST'])
-def detect_key_moments():
-    """检测视频关键时刻"""
+@app.route('/api/get_danmaku', methods=['GET'])
+def get_danmaku():
+    """获取最近弹幕"""
     try:
-        data = request.get_json()
+        recent = danmaku_system.get_recent_danmaku(limit=50)
+        return jsonify({'success': True, 'danmaku': recent})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/generate_danmaku', methods=['POST'])
+def generate_danmaku():
+    """生成 AI 弹幕"""
+    try:
+        data = request.get_json() or {}
+        video_context = data.get('video_context', '')
+        user_message = data.get('user_message', '')
+
+        danmaku = danmaku_system.generate_ai_danmaku(
+            video_context=video_context,
+            user_message=user_message
+        )
+        return jsonify({
+            'success': True,
+            'danmaku': danmaku,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================================
+# FIE 数据
+# ============================================================
+@app.route('/api/fie_data', methods=['GET'])
+def get_fie_data():
+    """获取 FIE 比赛数据"""
+    try:
+        results = fie_collector.get_recent_results()
+        return jsonify({'success': True, 'results': results})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ============================================================
+# 视频分析（合并：场景/动作/关键时刻/知识点）
+# ============================================================
+@app.route('/api/video_insight', methods=['POST'])
+def video_insight():
+    """
+    统一视频洞察接口：返回当前帧的场景、动作识别、相关知识。
+    请求体：{ video_url, current_time, weapon? }
+    """
+    try:
+        data = request.get_json() or {}
         video_url = data.get('video_url', '')
-        video_duration = data.get('duration', 0)
-        
-        moments = video_analyzer.detect_key_moments(video_url, video_duration)
-        
+        current_time = int(data.get('current_time') or 0)
+        weapon = data.get('weapon')  # 前端显式选择的剑种
+
+        # 构造 frame_data，供 analyzer 使用
+        frame_data = {'video_url': video_url}
+        if weapon:
+            frame_data['weapon'] = weapon
+
+        # 场景 + 动作 + 知识
+        scene = video_analyzer.analyze_video_scene(video_url, current_time, frame_data)
+        action = video_analyzer.recognize_action(frame_data, current_time)
+        knowledge_points = video_analyzer.analyze_frame(frame_data, current_time).get('knowledge_points', [])
+
         return jsonify({
             'success': True,
-            'moments': moments
+            'scene': scene,
+            'action': action,
+            'knowledge_points': knowledge_points,
+            'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/analyze_video_scene', methods=['POST'])
-def analyze_video_scene():
-    """分析视频场景"""
+
+@app.route('/api/key_moments', methods=['POST'])
+def key_moments():
+    """
+    检测视频关键时刻及其关联知识。
+    请求体：{ video_url, duration }
+    """
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         video_url = data.get('video_url', '')
-        current_time = data.get('current_time', 0)
-        frame_data = data.get('frame_data')
-        
-        scene_info = video_analyzer.analyze_video_scene(video_url, current_time, frame_data)
-        
-        return jsonify({
-            'success': True,
-            'scene': scene_info
-        })
+        duration = int(data.get('duration') or 0)
+
+        moments = video_analyzer.detect_key_moments(video_url, duration)
+        return jsonify({'success': True, 'moments': moments})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/recognize_action', methods=['POST'])
-def recognize_action():
-    """识别击剑动作"""
+
+@app.route('/api/knowledge_recommend', methods=['POST'])
+def knowledge_recommend():
+    """
+    基于视频上下文推荐相关知识。
+    请求体：{ weapon, action?, stage? }
+    """
     try:
-        data = request.get_json()
-        frame_data = data.get('frame_data')
-        current_time = data.get('current_time', 0)
-        context = data.get('context')
-        
-        action_info = action_recognizer.recognize_action(frame_data, current_time, context)
-        
-        return jsonify({
-            'success': True,
-            'action': action_info
-        })
+        data = request.get_json() or {}
+        ctx = {
+            'weapon': data.get('weapon', ''),
+            'stage': data.get('stage', ''),
+            'action': data.get('action', {}) or {},
+        }
+        recs = knowledge_recommender.recommend(ctx, user_id=data.get('user_id', 'default'))
+        return jsonify({'success': True, 'recommendations': recs})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/recommend_knowledge', methods=['POST'])
-def recommend_knowledge():
-    """推荐相关知识"""
-    try:
-        data = request.get_json()
-        video_context = data.get('video_context', {})
-        user_id = data.get('user_id', 'default')
-        
-        recommendations = knowledge_recommender.recommend(video_context, user_id)
-        
-        return jsonify({
-            'success': True,
-            'recommendations': recommendations
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/get_learning_path', methods=['POST'])
-def get_learning_path():
-    """获取学习路径推荐"""
-    try:
-        data = request.get_json()
-        user_profile = data.get('user_profile', {'level': '初级', 'user_id': 'default'})
-        
-        next_knowledge = learning_path_tracker.get_next_knowledge(user_profile)
-        
-        return jsonify({
-            'success': True,
-            'recommendation': next_knowledge
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/update_learning_progress', methods=['POST'])
-def update_learning_progress():
-    """更新学习进度"""
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id', 'default')
-        topic = data.get('topic', '')
-        path_id = data.get('path_id')
-        
-        learning_path_tracker.update_progress(user_id, topic, path_id)
-        
-        return jsonify({
-            'success': True,
-            'message': '学习进度已更新'
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/multimodal_analyze', methods=['POST'])
-def multimodal_analyze():
-    """多模态分析"""
-    try:
-        data = request.get_json()
-        video_url = data.get('video_url', '')
-        video_data = data.get('video_data')
-        audio_transcript = data.get('audio_transcript')
-        subtitles = data.get('subtitles')
-        
-        analysis = multimodal_analyzer.analyze(video_url, video_data, audio_transcript, subtitles)
-        
-        return jsonify({
-            'success': True,
-            'analysis': analysis
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/generate_contextual_danmaku', methods=['POST'])
-def generate_contextual_danmaku():
-    """生成基于视频分析的弹幕"""
-    try:
-        data = request.get_json()
-        frame_analysis = data.get('frame_analysis', {})
-        current_time = data.get('current_time', 0)
-        
-        danmaku = danmaku_system.generate_contextual_danmaku(frame_analysis, current_time)
-        
-        return jsonify({
-            'success': True,
-            'danmaku': danmaku
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/analyze_frame', methods=['POST'])
-def analyze_frame():
-    """分析视频帧"""
-    try:
-        data = request.get_json()
-        frame_data = data.get('frame_data', {})
-        current_time = data.get('current_time', 0)
-        
-        analysis = video_analyzer.analyze_frame(frame_data, current_time)
-        
-        return jsonify({
-            'success': True,
-            'analysis': analysis
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8888)

@@ -549,20 +549,58 @@ class FencingAI:
                 pass
         
         # 使用本地知识库进行深度分析
-        # 结合多个知识库类别生成更全面的回答
-        analysis_parts = []
-        
-        # 根据问题关键词搜索相关知识点
         question_lower = question.lower()
+        analysis_parts = []
+
+        # 剑种相关
+        for weapon in ("花剑", "重剑", "佩剑"):
+            if weapon in question_lower:
+                wb = self.knowledge_base.get("剑种", {}).get(weapon, {})
+                if wb:
+                    analysis_parts.append(f"【{weapon}】{wb.get('description', '')}")
+                    rules = wb.get("rules", [])
+                    if rules:
+                        analysis_parts.append("规则要点：" + "；".join(rules) + "。")
+                    techs = wb.get("techniques", [])
+                    if techs:
+                        analysis_parts.append("常用技术：" + "、".join(techs) + "。")
+                    if wb.get("scoring"):
+                        analysis_parts.append("计分方式：" + wb["scoring"] + "。")
+
+        # 规则类
+        if any(k in question_lower for k in ("规则", "计分", "得分", "裁判", "场地", "装备")):
+            rules = self.knowledge_base.get("规则", {})
+            for k, v in rules.items():
+                analysis_parts.append(f"【{k}】{v}")
+
+        # 技术/动作
+        if any(k in question_lower for k in ("技术", "动作", "直刺", "转移", "击打", "格挡", "闪避", "复合", "假动作")):
+            tech = self.knowledge_base.get("技术", {})
+            for k, v in tech.items():
+                if isinstance(v, list):
+                    analysis_parts.append(f"【{k}】" + "、".join(v))
+
+        # 战术
+        if any(k in question_lower for k in ("战术", "距离", "节奏", "时机", "心理")):
+            tech = self.knowledge_base.get("技术", {}).get("战术运用", [])
+            if tech:
+                analysis_parts.append("【战术运用】" + "、".join(tech))
+
+        # 教练 / 训练
         if "教练" in question_lower:
             analysis_parts.append(self.knowledge_base.get("训练", {}).get("教练作用", ""))
             analysis_parts.append(self.knowledge_base.get("角色", {}).get("教练", ""))
-        
         if "训练" in question_lower:
             analysis_parts.append(self.knowledge_base.get("训练", {}).get("训练方法", ""))
-        
+
+        # 历史
+        if any(k in question_lower for k in ("历史", "起源", "奥运", "世锦赛", "中国")):
+            hist = self.knowledge_base.get("历史", {})
+            for k, v in hist.items():
+                analysis_parts.append(f"【{k}】{v}")
+
         if analysis_parts:
-            return "\n\n".join([part for part in analysis_parts if part])
-        
-        # 如果找不到相关内容，使用一般回复
+            head = f"关于「{question.strip()}」的深度分析：\n\n"
+            return head + "\n\n".join([p for p in analysis_parts if p])
+
         return self._generate_general_response(question, video_context)
