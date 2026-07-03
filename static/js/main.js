@@ -330,3 +330,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 导出到全局作用域
 window.FencingAIPlatform = FencingAIPlatform;
+
+// 面板折叠/展开函数
+function togglePanel(panelId) {
+    const panel = document.getElementById(panelId);
+    if (panel) {
+        panel.classList.toggle('collapsed');
+        const icon = panel.parentElement.querySelector('.panel-toggle i');
+        if (icon) {
+            if (panel.classList.contains('collapsed')) {
+                icon.style.transform = 'rotate(-90deg)';
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+    }
+}

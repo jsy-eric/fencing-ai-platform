@@ -3,184 +3,405 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚔️ 击剑AI智能体平台</title>
+    <title>FencingAI - 击剑AI智能体平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- 头部导航 -->
-        <header class="header">
-            <div class="logo">
-                <i class="fas fa-sword"></i>
-                <h1>击剑AI智能体平台</h1>
-            </div>
-            <div class="header-right">
-                <nav class="nav">
-                    <a href="#home" class="nav-link active" data-i18n="nav.home">首页</a>
-                    <a href="#about" class="nav-link" data-i18n="nav.about">关于</a>
-                    <a href="#contact" class="nav-link" data-i18n="nav.contact">联系</a>
-                </nav>
-                <div class="lang-toggle" title="切换中英文界面（保留占位，可接入原i18n逻辑）">
-                    <button class="lang-btn lang-btn-zh active" data-lang="zh">中</button>
-                    <button class="lang-btn lang-btn-en" data-lang="en">EN</button>
-                </div>
-            </div>
-        </header>
 
-        <!-- 主要内容区域 -->
-        <main class="main-content">
-            <!-- 左侧：视频播放区域 -->
-            <div class="video-section">
-                <div class="video-container">
-                    <div class="video-input-section">
-                        <h3><i class="fas fa-youtube"></i> <span data-i18n="video.title">YouTube视频播放</span></h3>
-                        <div class="input-group">
-                            <input type="text" id="youtube-url" placeholder="请输入YouTube视频链接..." class="url-input" data-i18n-placeholder="video.url.placeholder">
-                            <select id="weapon-select" class="weapon-select" title="选择剑种可显著提升推送相关性">
-                                <option value="auto" selected data-i18n="video.weapon.auto">剑种：自动</option>
-                                <option value="花剑" data-i18n="video.weapon.foil">花剑</option>
-                                <option value="重剑" data-i18n="video.weapon.epee">重剑</option>
-                                <option value="佩剑" data-i18n="video.weapon.sabre">佩剑</option>
+<!-- ============== TOP HEADER ============== -->
+<header class="top-bar">
+    <div class="top-bar__left">
+        <button class="icon-btn" id="menu-toggle" aria-label="菜单">
+            <i class="fas fa-bars"></i>
+        </button>
+        <a href="#" class="logo">
+            <div class="logo__icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <span class="logo__text">FencingAI</span>
+            <sup class="logo__sub">CN</sup>
+        </a>
+    </div>
+
+    <div class="top-bar__center">
+        <form class="search" id="search-form">
+            <div class="search__input-wrap">
+                <input type="text" class="search__input" placeholder="搜索" aria-label="搜索">
+            </div>
+            <button type="submit" class="search__btn" aria-label="搜索">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+        <button class="icon-btn icon-btn--voice" aria-label="语音搜索">
+            <i class="fas fa-microphone"></i>
+        </button>
+    </div>
+
+    <div class="top-bar__right">
+        <button class="icon-btn" aria-label="创建">
+            <i class="fas fa-video"></i>
+        </button>
+        <button class="icon-btn" aria-label="通知">
+            <i class="fas fa-bell"></i>
+            <span class="badge">9+</span>
+        </button>
+        <div class="avatar" title="用户">TC</div>
+    </div>
+</header>
+
+<!-- ============== SIDEBAR ============== -->
+<aside class="sidebar" id="sidebar">
+    <nav class="sidebar__nav">
+        <a href="#" class="sidebar__item sidebar__item--active">
+            <i class="fas fa-house"></i><span>首页</span>
+        </a>
+        <a href="#" class="sidebar__item">
+            <i class="fas fa-compass"></i><span>Shorts</span>
+        </a>
+        <a href="#" class="sidebar__item">
+            <i class="fas fa-folder"></i><span>订阅</span>
+        </a>
+        <hr class="sidebar__divider">
+
+        <a href="#" class="sidebar__item">
+            <i class="fas fa-folder-open"></i><span>我的媒体库</span>
+        </a>
+        <a href="#" class="sidebar__item">
+            <i class="fas fa-clock-rotate-left"></i><span>历史记录</span>
+        </a>
+        <a href="#" class="sidebar__item">
+            <i class="fas fa-bookmark"></i><span>稍后观看</span>
+        </a>
+        <a href="#" class="sidebar__item">
+            <i class="fas fa-thumbs-up"></i><span>赞过的视频</span>
+        </a>
+        <hr class="sidebar__divider">
+
+        <h3 class="sidebar__title">剑种分类</h3>
+        <a href="#" class="sidebar__item sidebar__item--weapon">
+            <span class="weapon-dot weapon-dot--foil"></span>
+            <span>花剑 · FOIL</span>
+        </a>
+        <a href="#" class="sidebar__item sidebar__item--weapon">
+            <span class="weapon-dot weapon-dot--epee"></span>
+            <span>重剑 · ÉPÉE</span>
+        </a>
+        <a href="#" class="sidebar__item sidebar__item--weapon">
+            <span class="weapon-dot weapon-dot--sabre"></span>
+            <span>佩剑 · SABRE</span>
+        </a>
+        <hr class="sidebar__divider">
+
+        <a href="#" class="sidebar__item">
+            <i class="fas fa-fire"></i><span>热门赛事</span>
+        </a>
+        <a href="#" class="sidebar__item">
+            <i class="fas fa-trophy"></i><span>FIE 数据</span>
+        </a>
+        <a href="#" class="sidebar__item">
+            <i class="fas fa-microchip"></i><span>AI 助手</span>
+            <span class="pill pill--pro">PRO</span>
+        </a>
+        <hr class="sidebar__divider">
+
+        <div class="sidebar__footer">
+            <p class="sidebar__caption">关于 隐私权 条款 · 2025 FencingAI</p>
+        </div>
+    </nav>
+</aside>
+
+<!-- ============== MAIN CONTENT ============== -->
+<main class="main" id="main">
+
+    <!-- Filter chips -->
+    <div class="chips">
+        <button class="chip chip--active">全部</button>
+        <button class="chip"><span class="chip-dot" style="background:#3ea6ff"></span>花剑</button>
+        <button class="chip"><span class="chip-dot" style="background:#ff5e5e"></span>重剑</button>
+        <button class="chip"><span class="chip-dot" style="background:#ffbb00"></span>佩剑</button>
+        <button class="chip">技术动作</button>
+        <button class="chip">战术分析</button>
+        <button class="chip">比赛回放</button>
+        <button class="chip">教学课程</button>
+        <button class="chip">最新</button>
+        <button class="chip">AI 精选</button>
+    </div>
+
+    <div class="layout">
+        <!-- Primary column -->
+        <div class="primary">
+
+            <!-- Video player -->
+            <section class="player">
+                <div class="player__frame" id="video-player">
+                    <div class="player__placeholder">
+                        <div class="player__placeholder-icon">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <h2 class="player__placeholder-title">粘贴 YouTube 链接以开始分析</h2>
+                        <p class="player__placeholder-text">支持比赛回放、训练视频、技术教学等内容</p>
+                    </div>
+                </div>
+                <div class="danmaku-layer" id="danmaku-display"></div>
+            </section>
+
+            <!-- Video input console -->
+            <section class="console">
+                <div class="console__row">
+                    <div class="console__input-wrap">
+                        <i class="fas fa-link console__input-icon"></i>
+                        <input type="text" id="youtube-url" class="console__input"
+                               placeholder="https://www.youtube.com/watch?v=...">
+                    </div>
+                    <select id="weapon-select" class="console__select">
+                        <option value="auto">智能识别</option>
+                        <option value="花剑">花剑 · FOIL</option>
+                        <option value="重剑">重剑 · ÉPÉE</option>
+                        <option value="佩剑">佩剑 · SABRE</option>
+                    </select>
+                    <button id="load-video" class="btn btn--primary">
+                        <i class="fas fa-play"></i> 加载视频
+                    </button>
+                </div>
+            </section>
+
+            <!-- Video info -->
+            <section class="info">
+                <h1 class="info__title" id="video-title">击剑AI智能体平台 — 等待加载视频</h1>
+
+                <div class="info__meta">
+                    <div class="info__channel">
+                        <div class="info__avatar">FA</div>
+                        <div class="info__channel-text">
+                            <div class="info__channel-name">
+                                FencingAI 官方
+                                <i class="fas fa-circle-check info__verified"></i>
+                            </div>
+                            <div class="info__channel-subs">12.5K 订阅者</div>
+                        </div>
+                        <button class="btn btn--sub">
+                            <i class="fas fa-bell"></i> 订阅
+                        </button>
+                    </div>
+
+                    <div class="info__actions">
+                        <button class="action-pill" id="action-analyze-btn">
+                            <i class="fas fa-wave-square"></i> 动作分析
+                        </button>
+                        <button class="action-pill" id="ai-generate-btn">
+                            <i class="fas fa-sparkles"></i> AI 弹幕
+                        </button>
+                        <button class="action-pill">
+                            <i class="fas fa-share"></i> 分享
+                        </button>
+                        <button class="action-pill action-pill--icon">
+                            <i class="fas fa-ellipsis"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="info__desc">
+                    <div class="info__desc-stats">
+                        <span><strong>2,847</strong> 场比赛已索引</span>
+                        <span><strong>98.6%</strong> 动作识别精度</span>
+                        <span><strong>12K+</strong> 活跃剑客</span>
+                    </div>
+                    <p>本平台利用最先进的大语言模型（DeepSeek / MiniMax）与计算机视觉技术，为击剑爱好者提供专业的比赛分析、动作识别、实时弹幕互动和个性化学习推荐。粘贴任意 YouTube 击剑视频链接即可开始体验。</p>
+                </div>
+            </section>
+
+            <!-- Tabs section -->
+            <section class="tabs">
+                <div class="tabs__list" role="tablist">
+                    <button class="tab tab--active" data-tab="danmaku">
+                        <i class="fas fa-comment-dots"></i> 弹幕
+                    </button>
+                    <button class="tab" data-tab="chat">
+                        <i class="fas fa-robot"></i> AI 助手
+                    </button>
+                    <button class="tab" data-tab="action">
+                        <i class="fas fa-wave-square"></i> 动作分析
+                    </button>
+                    <button class="tab" data-tab="knowledge">
+                        <i class="fas fa-lightbulb"></i> 知识推荐
+                    </button>
+                    <button class="tab" data-tab="fie">
+                        <i class="fas fa-trophy"></i> FIE 数据
+                    </button>
+                </div>
+
+                <!-- Danmaku panel -->
+                <div class="panel" id="panel-danmaku">
+                    <div class="panel__row">
+                        <input type="text" id="danmaku-input" class="input" placeholder="发送弹幕...">
+                        <button id="send-danmaku" class="btn btn--secondary">发送</button>
+                    </div>
+                    <div class="panel__row panel__row--btns">
+                        <button id="generate-ai-danmaku" class="btn btn--secondary btn--block">
+                            <i class="fas fa-sparkles"></i> AI 生成弹幕
+                        </button>
+                        <button id="auto-generate" class="btn btn--secondary btn--block">
+                            <i class="fas fa-arrows-rotate"></i> 自动生成
+                        </button>
+                    </div>
+                    <div class="panel__settings">
+                        <label class="setting">
+                            <span>显示弹幕</span>
+                            <input type="checkbox" id="show-danmaku" checked class="switch">
+                        </label>
+                        <label class="setting">
+                            <span>弹幕速度</span>
+                            <input type="range" id="danmaku-speed" min="1" max="10" value="5" class="slider">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Chat panel -->
+                <div class="panel" id="panel-chat" hidden>
+                    <div class="chat">
+                        <div class="chat__header">
+                            <select id="ai-provider-select" class="console__select console__select--sm">
+                                <option value="deepseek">DeepSeek V3</option>
+                                <option value="minimax">MiniMax</option>
+                                <option value="local">本地知识库</option>
                             </select>
-                            <button id="load-video" class="btn btn-primary">
-                                <i class="fas fa-play"></i> <span data-i18n="video.load">加载视频</span>
+                            <button class="icon-btn icon-btn--sm" title="清空">
+                                <i class="fas fa-rotate-right"></i>
+                            </button>
+                        </div>
+                        <div class="chat__messages" id="chat-messages">
+                            <div class="msg msg--ai">
+                                <div class="msg__avatar msg__avatar--ai"><i class="fas fa-microchip"></i></div>
+                                <div class="msg__body">
+                                    <div class="msg__author">FencingAI <span class="msg__time">现在</span></div>
+                                    <p>您好!我是击剑AI专家,可以为您解答击剑相关问题,分析比赛内容,并生成相关弹幕。请问有什么可以帮助您的吗?</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat__input">
+                            <input type="text" id="chat-input" class="input" placeholder="向 AI 提问...">
+                            <button id="send-chat" class="icon-btn icon-btn--primary" title="发送">
+                                <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
                     </div>
-                    
-                    <div class="video-player" id="video-player">
-                        <div class="video-placeholder">
-                            <i class="fas fa-video fa-3x"></i>
-                            <p data-i18n="video.url.placeholder">请输入YouTube视频链接...</p>
-                        </div>
-                    </div>
-                    
-                    <!-- 时间轴标注 -->
-                    <div id="video-timeline" class="video-timeline"></div>
-                    
-                    <!-- 弹幕显示区域 -->
-                    <div class="danmaku-display" id="danmaku-display">
-                        <!-- 弹幕将在这里动态显示 -->
+                </div>
+
+                <!-- Action analysis panel -->
+                <div class="panel" id="panel-action" hidden>
+                    <div id="action-analysis-panel" class="panel__placeholder">
+                        <i class="fas fa-wave-square"></i>
+                        <p>视频播放时将显示动作分析</p>
                     </div>
                 </div>
+
+                <!-- Knowledge panel -->
+                <div class="panel" id="panel-knowledge" hidden>
+                    <div id="knowledge-recommendations" class="panel__placeholder">
+                        <i class="fas fa-lightbulb"></i>
+                        <p>正在分析视频内容...</p>
+                    </div>
+                </div>
+
+                <!-- FIE data panel -->
+                <div class="panel" id="panel-fie" hidden>
+                    <div class="panel__header">
+                        <h3>实时 FIE 数据</h3>
+                        <button id="refresh-fie" class="icon-btn icon-btn--sm"><i class="fas fa-arrows-rotate"></i></button>
+                    </div>
+                    <div id="fie-data" class="panel__placeholder">
+                        <i class="fas fa-trophy"></i>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Secondary column: recommendations -->
+        <aside class="secondary">
+            <div class="secondary__header">
+                <h3>推荐视频</h3>
+                <button class="icon-btn icon-btn--sm" title="自动播放">
+                    <i class="fas fa-circle-play"></i>
+                </button>
             </div>
 
-            <!-- 右侧：AI聊天和弹幕控制 -->
-            <div class="sidebar">
-                <!-- AI聊天区域 -->
-                <div class="chat-section">
-                    <div class="chat-header">
-                        <h3><i class="fas fa-robot"></i> <span data-i18n="chat.title">AI击剑专家</span></h3>
-                        <select id="ai-provider-select" class="ai-provider-select" title="选择AI服务提供商">
-                            <option value="deepseek">DeepSeek</option>
-                            <option value="minimax">MiniMax</option>
-                            <option value="local">本地知识库</option>
-                        </select>
-                    </div>
-                    <div class="chat-messages" id="chat-messages">
-                        <div class="message ai-message">
-                            <div class="message-avatar">
-                                <i class="fas fa-robot"></i>
-                            </div>
-                            <div class="message-content">
-                                <p data-i18n="chat.welcome">您好！我是击剑AI专家，可以为您解答击剑相关问题，分析比赛内容，并生成相关弹幕。请问有什么可以帮助您的吗？</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="chat-input">
-                        <input type="text" id="chat-input" placeholder="输入您的问题..." class="chat-text-input" data-i18n-placeholder="chat.input.placeholder">
-                        <button id="send-chat" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 弹幕控制区域 -->
-                <div class="danmaku-control">
-                    <h3><i class="fas fa-comments"></i> <span data-i18n="danmaku.title">弹幕控制</span></h3>
-                    
-                    <div class="danmaku-input">
-                        <input type="text" id="danmaku-input" placeholder="输入弹幕内容..." class="danmaku-text-input" data-i18n-placeholder="danmaku.input.placeholder">
-                        <button id="send-danmaku" class="btn btn-secondary">
-                            <i class="fas fa-paper-plane"></i> <span data-i18n="danmaku.send">发送</span>
-                        </button>
-                    </div>
-                    
-                    <div class="ai-danmaku-control">
-                        <button id="generate-ai-danmaku" class="btn btn-success">
-                            <i class="fas fa-magic"></i> <span data-i18n="danmaku.ai">AI生成弹幕</span>
-                        </button>
-                        <button id="auto-generate" class="btn btn-info">
-                            <i class="fas fa-sync"></i> <span data-i18n="danmaku.auto">自动生成</span>
-                        </button>
-                    </div>
-                    
-                    <div class="danmaku-settings">
-                        <label>
-                            <input type="checkbox" id="show-danmaku" checked> <span data-i18n="danmaku.show">显示弹幕</span>
-                        </label>
-                        <label>
-                            <input type="range" id="danmaku-speed" min="1" max="10" value="5"> <span data-i18n="danmaku.speed">弹幕速度</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- 动作分析面板 -->
-                <div class="action-analysis-section">
-                    <h3><i class="fas fa-brain"></i> <span data-i18n="action.title">动作分析</span></h3>
-                    <div id="action-analysis-panel" class="action-analysis-panel">
-                        <p class="placeholder-text" data-i18n="action.placeholder">视频播放时将显示动作分析</p>
-                    </div>
-                </div>
-
-                <!-- 知识推荐 -->
-                <div class="knowledge-recommendations-section">
-                    <h3>
-                        <i class="fas fa-lightbulb"></i> <span data-i18n="rec.title">推荐学习</span>
-                        <label class="auto-push-toggle" title="播放时自动推送知识卡片/消息">
-                            <input type="checkbox" id="auto-push-knowledge" checked>
-                            <span data-i18n="rec.autoPush">自动推送</span>
-                        </label>
-                    </h3>
-                    <div id="knowledge-recommendations" class="knowledge-recommendations">
-                        <p class="placeholder-text" data-i18n="rec.placeholder">正在分析视频内容...</p>
-                    </div>
-                </div>
-
-                <!-- FIE数据区域 -->
-                <div class="fie-data-section">
-                    <h3><i class="fas fa-trophy"></i> <span data-i18n="fie.title">FIE比赛数据</span></h3>
-                    <div class="fie-data" id="fie-data">
-                        <div class="loading" data-i18n="fie.loading">加载中...</div>
-                    </div>
-                    <button id="refresh-fie" class="btn btn-outline">
-                        <i class="fas fa-refresh"></i> <span data-i18n="fie.refresh">刷新数据</span>
-                    </button>
-                </div>
+            <div class="rec-list" id="rec-list">
+                <!-- 8 recommendation cards rendered by JS -->
             </div>
-        </main>
-
-        <!-- 底部信息 -->
-        <footer class="footer">
-            <p data-i18n="footer">&copy; 2024 击剑AI智能体平台. 基于AI技术提供专业击剑知识和弹幕服务.</p>
-        </footer>
+        </aside>
     </div>
+</main>
 
-    <!-- 弹幕样式 -->
-    <style id="danmaku-style"></style>
+<!-- ============== SCRIPTS ============== -->
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/danmaku.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/youtube.js') }}"></script>
+<script src="{{ url_for('static', filename='js/knowledge_cards.js') }}"></script>
+<script src="{{ url_for('static', filename='js/timeline_annotator.js') }}"></script>
+<script src="{{ url_for('static', filename='js/interactive_qa.js') }}"></script>
+<script src="{{ url_for('static', filename='js/video_monitor.js') }}"></script>
 
-    <!-- JavaScript文件 -->
-    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/danmaku.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/youtube.js') }}"></script>
-    <!-- 新增功能 -->
-    <script src="{{ url_for('static', filename='js/knowledge_cards.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/timeline_annotator.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interactive_qa.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/video_monitor.js') }}"></script>
+<script>
+// ====== Recommendation data ======
+const recommendations = [
+    { num:'01', cat:'FOIL',    time:'12:34', title:'2024 巴黎奥运花剑决赛 · 中国 vs 法国',  ch:'FIE 官方频道',  views:'48万', ago:'3天前',  color:'#3ea6ff', icon:'fa-bolt' },
+    { num:'02', cat:'ÉPÉE',    time:'08:21', title:'重剑基本步法教学 · 击剑入门系列',       ch:'击剑学堂',      views:'125万',ago:'2周前',  color:'#ff5e5e', icon:'fa-shield-halved' },
+    { num:'03', cat:'SABRE',   time:'15:47', title:'佩剑快速进攻战术解析 · 高级技巧',       ch:'击剑大师',      views:'67万', ago:'1周前',  color:'#ffbb00', icon:'fa-bolt' },
+    { num:'04', cat:'FIE',     time:'22:15', title:'FIE 大奖赛总决赛 · 男子重剑精彩对决',   ch:'World Fencing TV',views:'89万',ago:'5天前',  color:'#aaaaaa', icon:'fa-trophy' },
+    { num:'05', cat:'FOIL',    time:'10:33', title:'花剑防守反击技术 · 实战应用',           ch:'击剑之道',      views:'36万', ago:'1月前',  color:'#3ea6ff', icon:'fa-bolt' },
+    { num:'06', cat:'AI',      time:'18:02', title:'AI 击剑分析 · 动作识别技术演示',         ch:'FencingAI',     views:'12万', ago:'2天前',  color:'#ff0033', icon:'fa-microchip' },
+    { num:'07', cat:'战术',    time:'14:28', title:'击剑战术思维 · 如何在比赛中占得先机',   ch:'击剑思维',      views:'52万', ago:'3周前',  color:'#aaaaaa', icon:'fa-chess' },
+    { num:'08', cat:'国家队',  time:'25:11', title:'击剑世界杯 · 中国队精彩集锦',           ch:'中国击剑协会',  views:'203万',ago:'1周前',  color:'#ff0033', icon:'fa-flag' }
+];
+
+const recList = document.getElementById('rec-list');
+recList.innerHTML = recommendations.map(r => `
+    <article class="rec">
+        <div class="rec__thumb" style="--c:${r.color}">
+            <i class="fas ${r.icon} rec__icon"></i>
+            <span class="rec__num">${r.num}</span>
+            <span class="rec__cat">${r.cat}</span>
+            <span class="rec__time">${r.time}</span>
+        </div>
+        <div class="rec__info">
+            <h4 class="rec__title">${r.title}</h4>
+            <p class="rec__ch">${r.ch} <i class="fas fa-circle-check"></i></p>
+            <p class="rec__meta">${r.views}次观看 · ${r.ago}</p>
+        </div>
+    </article>
+`).join('');
+
+// ====== Tabs ======
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+        tab.classList.add('tab--active');
+        const target = tab.dataset.tab;
+        document.querySelectorAll('.panel').forEach(p => p.hidden = true);
+        document.getElementById('panel-' + target).hidden = false;
+    });
+});
+
+// ====== Chips ======
+document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip--active'));
+        chip.classList.add('chip--active');
+    });
+});
+
+// ====== Sidebar toggle ======
+document.getElementById('menu-toggle')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('sidebar--mini');
+    document.getElementById('main').classList.toggle('main--full');
+});
+</script>
 </body>
 </html>
