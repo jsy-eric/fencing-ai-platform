@@ -1481,6 +1481,9 @@ img { max-width: 100%; display: block; }
     flex-direction: column;
 }
 
+/* 修复：HTML5 [hidden] 属性被 display:flex 覆盖 */
+.panel[hidden] { display: none !important; }
+
 #panel-ai-assistant .chat {
     flex: 1 1 auto;
     min-height: 0;
