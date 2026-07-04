@@ -136,6 +136,8 @@ Thumbs.db
 
 # Project specific
 data/temp/
+data/uploads/
+data/frames/
 logs/
 *.log
 config.ini
