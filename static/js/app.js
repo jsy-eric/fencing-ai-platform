@@ -45,7 +45,7 @@
             document.querySelectorAll('.sidebar__item').forEach(i => i.classList.remove('sidebar__item--active'));
             item.classList.add('sidebar__item--active');
             if (target === 'home') {
-                switchTab('danmaku');
+                switchTab('ai-assistant');
             } else {
                 switchTab(target);
             }
@@ -65,7 +65,7 @@
     document.querySelectorAll('.quick-help__btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const q = btn.dataset.q;
-            switchTab('chat');
+            switchTab('ai-assistant');
             setTimeout(() => {
                 const input = document.getElementById('chat-input');
                 if (input) {
@@ -465,6 +465,158 @@
         });
     });
 
+    // ====== Mode Switcher (弹幕+对话 / 仅对话) ======
+    const modeState = {
+        current: localStorage.getItem('fencing_ai_mode') || 'hybrid',  // hybrid | chat
+        currentVideoId: null,
+        userDanmaku: JSON.parse(localStorage.getItem('fencing_ai_user_danmaku') || '{}')  // { videoId: [{time, text, type}] }
+    };
+
+    function setupModeSwitcher() {
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                if (modeState.current === mode) return;
+                modeState.current = mode;
+                localStorage.setItem('fencing_ai_mode', mode);
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+                // 切换模式时清空当前视频的弹幕显示
+                const layer = document.querySelector('.danmaku-layer, #danmaku-layer');
+                if (layer) layer.innerHTML = '';
+                // 重新加载弹幕
+                if (modeState.currentVideoId) loadUserDanmaku(modeState.currentVideoId);
+            });
+        });
+        // 初始化 active 状态
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === modeState.current));
+    }
+
+    // ====== Per-video Danmaku Storage ======
+    function getVideoId() {
+        const info = window.youtubeSystem?.getCurrentVideoInfo?.();
+        return info?.id || info?.videoId || null;
+    }
+
+    function saveUserDanmaku(videoId, danmaku) {
+        if (!videoId) return;
+        modeState.userDanmaku[videoId] = danmaku;
+        try {
+            localStorage.setItem('fencing_ai_user_danmaku', JSON.stringify(modeState.userDanmaku));
+        } catch (e) {
+            console.warn('保存弹幕失败', e);
+        }
+    }
+
+    function getUserDanmaku(videoId) {
+        if (!videoId) return [];
+        return modeState.userDanmaku[videoId] || [];
+    }
+
+    function loadUserDanmaku(videoId) {
+        if (modeState.current !== 'hybrid') return;
+        const layer = document.querySelector('.danmaku-layer, #danmaku-layer');
+        if (!layer) return;
+        layer.innerHTML = '';
+        const danmakuList = getUserDanmaku(videoId);
+        danmakuList.forEach((d, idx) => {
+            setTimeout(() => addDanmakuToLayer(d.text, d.type), idx * 300);
+        });
+    }
+
+    function addDanmakuToLayer(text, type = 'user') {
+        const layer = document.querySelector('.danmaku-layer, #danmaku-layer');
+        if (!layer) return;
+        if (document.getElementById('show-danmaku') && !document.getElementById('show-danmaku').checked) return;
+        const speed = document.getElementById('danmaku-speed')?.value || 5;
+        const duration = (11 - speed) * 1.5;  // 速度越快 duration 越短
+        const track = layer.children.length % 6;  // 6条轨道
+        const danmaku = document.createElement('div');
+        danmaku.className = 'danmaku danmaku--' + type;  // danmaku--user / danmaku--ai
+        danmaku.textContent = text;
+        danmaku.style.top = (track * 32 + 10) + 'px';
+        danmaku.style.animationDuration = duration + 's';
+        layer.appendChild(danmaku);
+        setTimeout(() => danmaku.remove(), duration * 1000);
+    }
+
+    // ====== Chat send with mode-aware danmaku ======
+    function setupChatSend() {
+        const sendBtn = document.getElementById('send-chat');
+        const input = document.getElementById('chat-input');
+        if (!sendBtn || !input) return;
+
+        const handleSend = async () => {
+            const text = input.value.trim();
+            if (!text) return;
+            const videoId = getVideoId();
+            const now = Date.now();
+
+            // 1. 添加到聊天记录
+            if (window.chatSystem?.addMessage) {
+                window.chatSystem.addMessage(text, 'user');
+            }
+
+            // 2. 添加为用户弹幕（如果 hybrid 模式）
+            if (modeState.current === 'hybrid') {
+                addDanmakuToLayer(text, 'user');
+                // 保存到视频弹幕库
+                if (videoId) {
+                    const list = getUserDanmaku(videoId);
+                    list.push({ time: now, text, type: 'user' });
+                    saveUserDanmaku(videoId, list);
+                }
+            }
+
+            // 3. 发送给 AI
+            input.value = '';
+            try {
+                const r = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, video_id: videoId })
+                });
+                const data = await r.json();
+                const reply = data.reply || data.response || data.message || '抱歉，AI 服务暂时不可用。';
+                if (window.chatSystem?.addMessage) {
+                    window.chatSystem.addMessage(reply, 'ai');
+                }
+                if (modeState.current === 'hybrid') {
+                    addDanmakuToLayer(reply, 'ai');
+                }
+            } catch (e) {
+                if (window.chatSystem?.addMessage) {
+                    window.chatSystem.addMessage('请求失败：' + e.message, 'ai');
+                }
+            }
+        };
+
+        sendBtn.addEventListener('click', handleSend);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+    }
+
+    // ====== 监听视频变化，加载该视频的弹幕 ======
+    function setupVideoChangeListener() {
+        // 定时检查视频变化
+        let lastVideoId = null;
+        setInterval(() => {
+            const currentId = getVideoId();
+            if (currentId && currentId !== lastVideoId) {
+                lastVideoId = currentId;
+                modeState.currentVideoId = currentId;
+                if (modeState.current === 'hybrid') {
+                    loadUserDanmaku(currentId);
+                }
+            }
+        }, 1000);
+    }
+
+    // ====== Init mode switcher & chat send ======
+    setupModeSwitcher();
+    setupChatSend();
+    setupVideoChangeListener();
+
     // ====== Helpers ======
     function escapeHtml(s) {
         if (s == null) return '';
@@ -507,7 +659,8 @@
             currentLabel: '中文',
             nav: { home: '首页', fie: 'FIE 数据', chat: 'AI 助手' },
             hero: { title: '粘贴视频链接开始', sub: '支持比赛回放、训练视频、技术教学等内容' },
-            tabs: { danmaku: '弹幕', chat: 'AI 助手', action: '动作分析', knowledge: '知识推荐', fie: 'FIE 数据' },
+            tabs: { aiAssistant: 'AI 助手', danmaku: '弹幕', chat: 'AI 助手', action: '动作分析', knowledge: '知识推荐', fie: 'FIE 数据' },
+            mode: { hybrid: '弹幕+对话', chat: '仅对话' },
             weapon: { auto: '智能识别', foil: '花剑 · FOIL', epee: '重剑 · ÉPÉE', sabre: '佩剑 · SABRE' },
             btn: { load: '加载视频', send: '发送', aiDanmaku: 'AI 生成弹幕', autoGen: '自动生成' },
             settings: { showDanmaku: '显示弹幕', speed: '弹幕速度' },
@@ -548,7 +701,8 @@
             currentLabel: 'English',
             nav: { home: 'Home', fie: 'FIE Data', chat: 'AI Assistant' },
             hero: { title: 'Paste a YouTube link to start analysis', sub: 'Supports match replays, training videos, technique tutorials, and more' },
-            tabs: { danmaku: 'Danmaku', chat: 'AI Assistant', action: 'Action Analysis', knowledge: 'Knowledge', fie: 'FIE Data' },
+            tabs: { aiAssistant: 'AI Assistant', danmaku: 'Danmaku', chat: 'AI Assistant', action: 'Action Analysis', knowledge: 'Knowledge', fie: 'FIE Data' },
+            mode: { hybrid: 'Danmaku + Chat', chat: 'Chat Only' },
             weapon: { auto: 'Auto Detect', foil: 'Foil · FOIL', epee: 'Épée · ÉPÉE', sabre: 'Sabre · SABRE' },
             btn: { load: 'Load Video', send: 'Send', aiDanmaku: 'AI Generate Danmaku', autoGen: 'Auto Generate' },
             settings: { showDanmaku: 'Show Danmaku', speed: 'Danmaku Speed' },
@@ -589,7 +743,8 @@
             currentLabel: '日本語',
             nav: { home: 'ホーム', fie: 'FIE データ', chat: 'AI アシスタント' },
             hero: { title: 'YouTube リンクを貼り付けて分析を開始', sub: '試合の録画、トレーニング動画、テクニック解説などに対応' },
-            tabs: { danmaku: '弾幕', chat: 'AI アシスタント', action: '動作分析', knowledge: 'ナレッジ', fie: 'FIE データ' },
+            tabs: { aiAssistant: 'AI アシスタント', danmaku: '弾幕', chat: 'AI アシスタント', action: '動作分析', knowledge: 'ナレッジ', fie: 'FIE データ' },
+            mode: { hybrid: '弾幕+チャット', chat: 'チャットのみ' },
             weapon: { auto: '自動識別', foil: 'フォイル · FOIL', epee: 'エペ · ÉPÉE', sabre: 'サーブル · SABRE' },
             btn: { load: '動画を読み込む', send: '送信', aiDanmaku: 'AI 弾幕生成', autoGen: '自動生成' },
             settings: { showDanmaku: '弾幕を表示', speed: '弾幕速度' },

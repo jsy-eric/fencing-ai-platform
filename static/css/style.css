@@ -1220,3 +1220,123 @@ img { max-width: 100%; display: block; }
     align-items: center;
     gap: 12px;
 }
+
+/* ========== Mode Switcher (弹幕+对话 / 仅对话) ========== */
+.mode-switcher {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    padding: 2px;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.mode-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 5px 10px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.mode-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.mode-btn.active {
+    background: rgba(255, 65, 54, 0.85);
+    color: #fff;
+}
+
+.mode-btn i {
+    font-size: 13px;
+}
+
+/* ========== Danmaku Layer ========== */
+.danmaku-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 5;
+}
+
+.danmaku {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 14px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: danmaku-fly linear forwards;
+    will-change: transform, opacity;
+}
+
+/* 用户弹幕 - 蓝色实色 */
+.danmaku--user {
+    background: rgba(56, 132, 255, 0.85);
+    color: #fff;
+    border: 1px solid rgba(56, 132, 255, 1);
+    box-shadow: 0 2px 8px rgba(56, 132, 255, 0.3);
+}
+
+.danmaku--user::before {
+    content: '\f007';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-right: 5px;
+    font-size: 11px;
+    opacity: 0.85;
+}
+
+/* AI弹幕 - 红/紫渐变 */
+.danmaku--ai {
+    background: linear-gradient(135deg, rgba(255, 65, 54, 0.9) 0%, rgba(155, 81, 224, 0.9) 100%);
+    color: #fff;
+    border: 1px solid rgba(255, 100, 90, 0.6);
+    box-shadow: 0 2px 8px rgba(155, 81, 224, 0.3);
+}
+
+.danmaku--ai::before {
+    content: '\f544';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-right: 5px;
+    font-size: 11px;
+    opacity: 0.85;
+}
+
+@keyframes danmaku-fly {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    5% {
+        opacity: 1;
+    }
+    95% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+/* Player container 相对定位，让弹幕层能绝对定位 */
+.player {
+    position: relative;
+}
