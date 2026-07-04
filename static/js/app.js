@@ -481,6 +481,24 @@
         loadAIStatus();
         loadRecommendations();
         setupLanguageSwitcher();
+
+        // 监听语言变化，重新加载动态内容
+        window.addEventListener('languageChanged', () => {
+            state.fieLoaded = false;
+            state.insightLoaded = false;
+            state.knowledgeLoaded = false;
+            state.recsLoaded = false;
+            state.momentsLoaded = false;
+            // 根据当前可见的 panel 重新加载
+            const knowledgePanel = document.getElementById('panel-knowledge');
+            const actionPanel = document.getElementById('panel-action');
+            const fiePanel = document.getElementById('panel-fie');
+            if (knowledgePanel && !knowledgePanel.hidden) loadKnowledge();
+            if (actionPanel && !actionPanel.hidden) loadVideoInsight();
+            if (fiePanel && !fiePanel.hidden) loadFieData();
+            // 侧边栏推荐总是重新加载
+            loadRecommendations();
+        });
     });
 
     // ====== Language Switcher (i18n) ======
@@ -638,6 +656,8 @@
                 applyLanguage(lang);
                 localStorage.setItem('fencing_ai_lang', lang);
                 dropdown.classList.remove('show');
+                // 触发自定义事件，通知其他模块重新加载
+                window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
             });
         });
     }
