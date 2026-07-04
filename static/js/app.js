@@ -31,10 +31,21 @@
         tab.addEventListener('click', () => switchTab(tab.dataset.tab));
     });
 
-    // ====== Sidebar toggle ======
+    // ====== Sidebar toggle (持久化收缩状态) ======
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main');
+
+    // 页面初始化时从 localStorage 恢复状态
+    if (localStorage.getItem('fencing_ai_sidebar_mini') === '1') {
+        sidebar?.classList.add('sidebar--mini');
+        main?.classList.add('main--full');
+    }
+
     document.getElementById('menu-toggle')?.addEventListener('click', () => {
-        document.getElementById('sidebar').classList.toggle('sidebar--mini');
-        document.getElementById('main').classList.toggle('main--full');
+        const isMini = sidebar?.classList.toggle('sidebar--mini');
+        main?.classList.toggle('main--full', isMini);
+        // 持久化到 localStorage
+        localStorage.setItem('fencing_ai_sidebar_mini', isMini ? '1' : '0');
     });
 
     // ====== Sidebar navigation ======
