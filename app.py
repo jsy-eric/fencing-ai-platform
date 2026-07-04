@@ -62,10 +62,19 @@ def chat():
         data = request.get_json() or {}
         user_message = (data.get('message') or '').strip()
         video_context = data.get('video_context', '')
+        mode = data.get('mode', 'chat')  # 'chat' 或 'danmaku'
         if not user_message:
             return jsonify({'error': '请提供消息内容'}), 400
 
-        ai_response = fencing_ai.get_response(user_message, video_context=video_context)
+        # 弹幕模式下让 AI 限制回复在 30 字以内
+        ai_response = fencing_ai.get_response(
+            user_message,
+            video_context=video_context,
+            short_response=(mode == 'danmaku')
+        )
+        # 前端再次保险截断（防御性处理）
+        if mode == 'danmaku' and len(ai_response) > 60:
+            ai_response = ai_response[:30].rstrip() + '...'
         return jsonify({
             'success': True,
             'response': ai_response,

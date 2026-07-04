@@ -599,7 +599,11 @@
                 const r = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, video_id: videoId })
+                    body: JSON.stringify({
+                        message: text,
+                        video_id: videoId,
+                        mode: isHybrid ? 'danmaku' : 'chat'
+                    })
                 });
                 const data = await r.json();
                 const fullReply = data.reply || data.response || data.message || '抱歉，AI 服务暂时不可用。';
@@ -609,10 +613,9 @@
                     window.chatSystem.addMessage(fullReply, 'ai');
                 }
 
-                // 5. 弹幕模式下，限制 AI 回复字数不超过 30 字
+                // 5. 弹幕模式下，作为弹幕显示（后端已限制30字以内）
                 if (isHybrid) {
-                    const danmakuText = truncateForDanmaku(fullReply, 30);
-                    addDanmakuToLayer(danmakuText, 'ai');
+                    addDanmakuToLayer(fullReply, 'ai');
                 }
             } catch (e) {
                 if (window.chatSystem?.addMessage) {
@@ -624,6 +627,60 @@
         sendBtn.addEventListener('click', handleSend);
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleSend();
+        });
+    }
+
+    // ====== AI 生成弹幕 / 自动生成 ======
+    function setupDanmakuToolbar() {
+        const aiBtn = document.getElementById('generate-ai-danmaku');
+        const autoBtn = document.getElementById('auto-generate');
+        let autoTimer = null;
+
+        // AI 生成弹幕
+        aiBtn?.addEventListener('click', async () => {
+            aiBtn.classList.add('active');
+            try {
+                const info = window.youtubeSystem?.getCurrentVideoInfo?.();
+                const videoContext = info?.title ? `正在观看：${info.title}` : '击剑比赛';
+                const r = await fetch('/api/generate_danmaku', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ video_context: videoContext })
+                });
+                const data = await r.json();
+                if (data.success && data.danmaku) {
+                    if (modeState.current === 'hybrid') {
+                        addDanmakuToLayer(data.danmaku, 'ai');
+                    } else {
+                        // 聊天模式下添加到聊天记录
+                        if (window.chatSystem?.addMessage) {
+                            window.chatSystem.addMessage(data.danmaku, 'ai');
+                        }
+                    }
+                } else {
+                    alert('生成弹幕失败：' + (data.error || '未知错误'));
+                }
+            } catch (e) {
+                alert('生成弹幕失败：' + e.message);
+            } finally {
+                setTimeout(() => aiBtn.classList.remove('active'), 400);
+            }
+        });
+
+        // 自动生成弹幕（每 8 秒生成一条）
+        autoBtn?.addEventListener('click', () => {
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+                autoBtn.classList.remove('active');
+            } else {
+                autoBtn.classList.add('active');
+                // 立即生成一条
+                aiBtn?.click();
+                autoTimer = setInterval(() => {
+                    aiBtn?.click();
+                }, 8000);
+            }
         });
     }
 
@@ -647,6 +704,7 @@
     setupModeSwitcher();
     setupToolbarSwitch();
     setupChatSend();
+    setupDanmakuToolbar();
     setupVideoChangeListener();
 
     // ====== Helpers ======

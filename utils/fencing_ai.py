@@ -94,13 +94,20 @@ class FencingAI:
             "关键时刻", "比分胶着", "优势领先", "绝地反击", "完美配合"
         ]
     
-    def get_response(self, user_message: str, video_context: str = "") -> str:
-        """获取AI回复"""
+    def get_response(self, user_message: str, video_context: str = "", short_response: bool = False) -> str:
+        """获取AI回复
+
+        Args:
+            user_message: 用户消息
+            video_context: 视频上下文
+            short_response: 是否限制短回复（用于弹幕模式，30字以内）
+        """
         # 记录对话历史
         self.conversation_history.append({
             "user": user_message,
             "timestamp": datetime.now().isoformat(),
-            "video_context": video_context
+            "video_context": video_context,
+            "short_response": short_response
         })
         
         # 分析用户意图
@@ -110,9 +117,12 @@ class FencingAI:
         if self.current_provider and self._is_provider_available(self.current_provider):
             print(f"[{self.current_provider.capitalize()}] 尝试调用{self.current_provider.capitalize()} API...")
             try:
-                response = self._call_llm_api(user_message, video_context)
+                response = self._call_llm_api(user_message, video_context, short_response=short_response)
                 if response and len(response.strip()) > 0:
                     print(f"[{self.current_provider.capitalize()}] 成功获取回复，长度: {len(response)}")
+                    # 弹幕模式下后端保险截断
+                    if short_response and len(response) > 60:
+                        response = response[:30].rstrip() + '...'
                     # 记录AI回复
                     self.conversation_history.append({
                         "ai": response,
@@ -403,26 +413,29 @@ class FencingAI:
             }
         return {}
     
-    def _call_llm_api(self, user_message: str, video_context: str = "") -> Optional[str]:
+    def _call_llm_api(self, user_message: str, video_context: str = "", short_response: bool = False) -> Optional[str]:
         """通用LLM API调用方法"""
         provider = self.current_provider
         config = self._get_provider_config(provider)
-        
+
         if not config.get('api_key'):
             print(f"[{provider.capitalize()}] API密钥未配置")
             return None
-        
+
         print(f"[{provider.capitalize()}] 开始调用API，API密钥长度: {len(config['api_key'])}")
-        
+
         try:
             # 构建系统提示词
             system_prompt = self.config.FENCING_SYSTEM_PROMPT
+            if short_response:
+                # 弹幕模式：明确要求 30 字以内的极短回复
+                system_prompt += "\n\n【重要】当前是弹幕模式，请将回复严格控制在 30 个汉字以内（不含标点），简洁有力，不要使用列表或换行。"
             if video_context:
                 system_prompt += f"\n\n当前上下文：{video_context}"
-            
+
             # 构建消息历史（最近10条消息）
             messages = [{"role": "system", "content": system_prompt}]
-            
+
             # 添加对话历史
             recent_history = self.conversation_history[-10:]
             for item in recent_history:
@@ -430,36 +443,39 @@ class FencingAI:
                     messages.append({"role": "user", "content": item["user"]})
                 elif "ai" in item:
                     messages.append({"role": "assistant", "content": item["ai"]})
-            
+
             # 添加当前用户消息
             messages.append({"role": "user", "content": user_message})
-            
+
             # 调用LLM API
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {config['api_key']}"
             }
-            
+
+            # 弹幕模式下限制 max_tokens
+            max_tokens = 80 if short_response else config["max_tokens"]
+
             payload = {
                 "model": config["model"],
                 "messages": messages,
-                "max_tokens": config["max_tokens"],
+                "max_tokens": max_tokens,
                 "temperature": config["temperature"],
                 "stream": False
             }
-            
+
             print(f"[{provider.capitalize()}] 发送请求到: {config['base_url']}{config['endpoint']}")
-            print(f"[{provider.capitalize()}] 模型: {config['model']}, 消息数: {len(messages)}")
-            
+            print(f"[{provider.capitalize()}] 模型: {config['model']}, 消息数: {len(messages)}, short={short_response}")
+
             response = requests.post(
                 f"{config['base_url']}{config['endpoint']}",
                 headers=headers,
                 json=payload,
                 timeout=30
             )
-            
+
             print(f"[{provider.capitalize()}] 收到响应，状态码: {response.status_code}")
-            
+
             if response.status_code == 200:
                 result = response.json()
                 if "choices" in result and len(result["choices"]) > 0:
@@ -469,7 +485,7 @@ class FencingAI:
             else:
                 print(f"{provider.capitalize()} API调用失败: {response.status_code} - {response.text[:200]}")
                 return None
-                
+
         except requests.exceptions.Timeout:
             print(f"[{provider.capitalize()}] API请求超时（30秒），使用本地知识库")
             return None
@@ -481,7 +497,7 @@ class FencingAI:
             import traceback
             traceback.print_exc()
             return None
-        
+
         return None
     
     def test_provider_connection(self, provider: str) -> bool:
