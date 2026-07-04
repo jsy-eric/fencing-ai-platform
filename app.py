@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_from_directory, Response
 import os
 from datetime import datetime
 from utils.fencing_ai import FencingAI
@@ -7,11 +7,14 @@ from utils.fie_data import FIEDataCollector
 from utils.youtube_parser import YouTubeParser
 from utils.video_analyzer import VideoAnalyzer
 from utils.knowledge_recommender import KnowledgeRecommender
+from utils.local_video_processor import LocalVideoProcessor, job_store
 from config import Config
 
 app = Flask(__name__)
 config = Config()
 app.secret_key = config.SECRET_KEY
+# 100MB 上传限制
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
 # 初始化各个系统
 fencing_ai = FencingAI()
@@ -20,6 +23,7 @@ fie_collector = FIEDataCollector()
 youtube_parser = YouTubeParser()
 video_analyzer = VideoAnalyzer()
 knowledge_recommender = KnowledgeRecommender()
+local_video_processor = LocalVideoProcessor()
 
 
 # ============================================================
@@ -361,6 +365,117 @@ def key_moments():
         return jsonify({'success': True, 'moments': moments})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# ============================================================
+# 本地视频上传 + AI 多模态分析
+# ============================================================
+@app.route('/api/upload_video', methods=['POST'])
+def upload_video():
+    """接收本地视频文件，启动异步分析任务"""
+    try:
+        if 'video' not in request.files:
+            return jsonify({'error': '未找到视频文件'}), 400
+        f = request.files['video']
+        if not f or not f.filename:
+            return jsonify({'error': '文件无效'}), 400
+        content = f.read()
+        if not content:
+            return jsonify({'error': '文件内容为空'}), 400
+        try:
+            saved = local_video_processor.save_upload(f.filename, content)
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 400
+
+        video_id = saved['video_id']
+
+        # 已有分析结果？直接返回，避免重复分析
+        existing = local_video_processor.load_analysis(video_id)
+        if existing:
+            session['current_local_video'] = {
+                'video_id': video_id,
+                'filename': f.filename,
+                'size': saved['size'],
+                'analyzed': True,
+            }
+            return jsonify({
+                'success': True,
+                'video_id': video_id,
+                'filename': f.filename,
+                'size': saved['size'],
+                'cached': True,
+                'analysis': existing,
+            })
+
+        # 否则启动异步分析
+        weapon_hint = (request.form.get('weapon') or '').strip()
+        job_id = local_video_processor.analyze_async(video_id, saved['path'], weapon_hint)
+        session['current_local_video'] = {
+            'video_id': video_id,
+            'filename': f.filename,
+            'size': saved['size'],
+            'job_id': job_id,
+            'analyzed': False,
+        }
+        return jsonify({
+            'success': True,
+            'video_id': video_id,
+            'filename': f.filename,
+            'size': saved['size'],
+            'job_id': job_id,
+            'cached': False,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/analyze_status/<job_id>', methods=['GET'])
+def analyze_status(job_id: str):
+    """轮询分析任务状态"""
+    job = job_store.get(job_id)
+    if not job:
+        return jsonify({'error': '任务不存在或已过期'}), 404
+    return jsonify({
+        'success': True,
+        'status': job.get('status'),
+        'progress': job.get('progress', 0),
+        'step': job.get('step', ''),
+        'error': job.get('error'),
+        'result': job.get('result') if job.get('status') == 'done' else None,
+    })
+
+
+@app.route('/api/local_video/<video_id>')
+def serve_local_video(video_id: str):
+    """流式返回本地视频文件（支持 Range 协议）"""
+    from utils.local_video_processor import UPLOAD_DIR
+    # 找到对应文件
+    for ext in ('.mp4', '.mov', '.webm', '.avi', '.mkv', '.m4v'):
+        candidate = os.path.join(UPLOAD_DIR, f"{video_id}{ext}")
+        if os.path.exists(candidate):
+            return send_from_directory(
+                UPLOAD_DIR,
+                f"{video_id}{ext}",
+                conditional=True,  # 支持 Range
+            )
+    return jsonify({'error': '视频不存在'}), 404
+
+
+@app.route('/api/analysis/<video_id>', methods=['GET'])
+def get_analysis(video_id: str):
+    """获取已完成分析的结果（用于页面刷新后恢复）"""
+    data = local_video_processor.load_analysis(video_id)
+    if not data:
+        return jsonify({'error': '未找到分析结果'}), 404
+    return jsonify({'success': True, 'analysis': data})
+
+
+# ============================================================
+# 错误处理
+# ============================================================
+@app.errorhandler(413)
+def too_large(e):
+    return jsonify({'error': '文件超过 100MB 限制'}), 413
 
 
 @app.route('/api/knowledge_recommend', methods=['POST'])

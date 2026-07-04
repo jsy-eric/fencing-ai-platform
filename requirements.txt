@@ -8,3 +8,5 @@ itsdangerous==2.1.2
 click==8.1.7
 blinker==1.6.3
 openai==1.106.1
+Pillow>=10.0.0
+av>=10.0.0

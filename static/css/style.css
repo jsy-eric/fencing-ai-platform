@@ -447,6 +447,8 @@ img { max-width: 100%; display: block; }
 .btn--primary { background: var(--brand); color: #fff; }
 .btn--primary:hover { background: var(--brand-2); }
 .btn--secondary { background: var(--bg-active); }
+.btn--ghost { background: transparent; color: var(--text-1); border: 1px solid var(--border); }
+.btn--ghost:hover { background: var(--bg-active); border-color: var(--brand); color: var(--brand); }
 .btn--block { flex: 1; }
 
 /* ====================================================
@@ -1563,3 +1565,187 @@ img { max-width: 100%; display: block; }
 .secondary #panel-ai-assistant .chat__messages {
     max-height: 360px;
 }
+
+/* ====================================================
+   本地视频分析面板
+   ==================================================== */
+.analysis-panel {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-top: 12px;
+}
+.analysis-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.analysis-panel__head h4 {
+    margin: 0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.analysis-panel__head h4 i { color: var(--brand); }
+.analysis-panel__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-2);
+}
+.analysis-panel__meta .muted { color: var(--text-3); }
+.analysis-summary {
+    margin: 4px 0 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-2);
+}
+.analysis-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.analysis-tag {
+    background: var(--bg-active);
+    color: var(--text-2);
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+}
+.analysis-moments {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+}
+.analysis-moment {
+    display: flex;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.analysis-moment:hover { border-color: var(--brand); transform: translateY(-1px); }
+.analysis-moment__time {
+    flex-shrink: 0;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brand);
+    min-width: 36px;
+}
+.analysis-moment__body { flex: 1; min-width: 0; }
+.analysis-moment__title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+.analysis-moment__type {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    background: var(--bg-active);
+    color: var(--text-2);
+}
+.analysis-moment__type--attack { background: rgba(255,68,68,0.15); color: #ff4444; }
+.analysis-moment__type--defense { background: rgba(68,152,255,0.15); color: #4498ff; }
+.analysis-moment__type--score { background: rgba(76,175,80,0.15); color: #4caf50; }
+.analysis-moment__type--miss { background: rgba(255,152,0,0.15); color: #ff9800; }
+.analysis-moment__type--highlight { background: rgba(233,30,99,0.15); color: #e91e63; }
+.analysis-moment__desc { margin: 0; font-size: 11px; color: var(--text-3); line-height: 1.4; }
+.analysis-moment__tactic {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: var(--brand-2);
+}
+.analysis-moment__tactic i { margin-right: 2px; }
+.analysis-moment__btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg-1);
+    color: var(--brand);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    font-size: 11px;
+    transition: all 0.15s;
+}
+.analysis-moment__btn:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+/* ====================================================
+   上传进度模态
+   ==================================================== */
+.upload-progress {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    width: 320px;
+    overflow: hidden;
+    animation: slideUp 0.25s ease-out;
+}
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.upload-progress__inner { padding: 14px 16px; }
+.upload-progress__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.upload-progress__head h4 {
+    flex: 1;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+.upload-progress__head i { color: var(--brand); }
+.upload-progress__bar {
+    height: 4px;
+    background: var(--bg-active);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.upload-progress__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand) 0%, var(--brand-2) 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease-out;
+    width: 0%;
+}
+.upload-progress__step {
+    margin: 0 0 4px;
+    font-size: 12px;
+    color: var(--text-2);
+}
+.upload-progress__file {
+    margin: 0;
+    font-size: 11px;
+    color: var(--text-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.icon-btn--ghost { background: transparent; border: none; color: var(--text-3); }
+.icon-btn--ghost:hover { color: var(--text-1); background: var(--bg-active); }
+

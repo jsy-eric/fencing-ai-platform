@@ -45,6 +45,10 @@
                 <button id="load-video" class="btn btn--primary">
                     <i class="fas fa-play"></i> <span data-i18n="btn.load">加载视频</span>
                 </button>
+                <button id="local-video-btn" class="btn btn--ghost" title="选择本地视频">
+                    <i class="fas fa-folder-open"></i> <span data-i18n="btn.local">本地视频</span>
+                </button>
+                <input type="file" id="local-video-input" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/avi" hidden>
             </div>
         </div>
     </div>
@@ -122,6 +126,22 @@
                     <span class="moments__hint" id="moments-hint" data-i18n="moments.hint">点击节点跳转</span>
                 </div>
                 <div class="moments__list" id="moments-list"></div>
+            </section>
+
+            <!-- Local video analysis panel (上传本地视频后展开) -->
+            <section class="analysis-panel" id="analysis-panel" hidden>
+                <div class="analysis-panel__head">
+                    <h4><i class="fas fa-file-video"></i> <span data-i18n="analysis.title">本地视频分析</span></h4>
+                    <div class="analysis-panel__meta">
+                        <span id="analysis-filename"></span>
+                        <span id="analysis-meta-info" class="muted"></span>
+                    </div>
+                </div>
+                <div class="analysis-panel__body">
+                    <p class="analysis-summary" id="analysis-summary"></p>
+                    <div class="analysis-tags" id="analysis-tags"></div>
+                    <div class="analysis-moments" id="analysis-moments"></div>
+                </div>
             </section>
         </div>
 
@@ -277,10 +297,29 @@
     </div>
 </main>
 
+<!-- ============== LOCAL VIDEO UPLOAD PROGRESS ============== -->
+<div class="upload-progress" id="upload-progress" hidden>
+    <div class="upload-progress__inner">
+        <div class="upload-progress__head">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h4 id="upload-title">上传并分析视频</h4>
+            <button class="icon-btn icon-btn--ghost" id="upload-cancel" aria-label="关闭">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="upload-progress__bar">
+            <div class="upload-progress__fill" id="upload-fill"></div>
+        </div>
+        <p class="upload-progress__step" id="upload-step">准备中...</p>
+        <p class="upload-progress__file" id="upload-file"></p>
+    </div>
+</div>
+
 <!-- ============== SCRIPTS ============== -->
 <script src="{{ url_for('static', filename='js/danmaku.js') }}"></script>
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 <script src="{{ url_for('static', filename='js/youtube.js') }}"></script>
+<script src="{{ url_for('static', filename='js/local_video.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 
 </body>

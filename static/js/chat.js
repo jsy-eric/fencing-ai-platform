@@ -28,10 +28,15 @@ class ChatSystem {
 
         try {
             const videoContext = this.getVideoContext();
+            // 如果已上传本地视频，把分析结果附加到 context
+            const localCtx = window.localVideoSystem?.getContext?.();
+            const mergedContext = localCtx
+                ? `${videoContext}\n\n${localCtx}`
+                : videoContext;
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message, video_context: videoContext })
+                body: JSON.stringify({ message, video_context: mergedContext })
             });
             const data = await response.json();
             this.hideTyping();
