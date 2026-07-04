@@ -480,5 +480,135 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadAIStatus();
         loadRecommendations();
+        setupLanguageSwitcher();
     });
+
+    // ====== Language Switcher (i18n) ======
+    const i18n = {
+        zh: {
+            currentLabel: '中文',
+            nav: { home: '首页', fie: 'FIE 数据', chat: 'AI 助手' },
+            hero: { title: '粘贴 YouTube 链接以开始分析', sub: '支持比赛回放、训练视频、技术教学等内容' },
+            tabs: { danmaku: '弹幕', chat: 'AI 助手', action: '动作分析', knowledge: '知识推荐', fie: 'FIE 数据' },
+            weapon: { auto: '智能识别', foil: '花剑 · FOIL', epee: '重剑 · ÉPÉE', sabre: '佩剑 · SABRE' },
+            btn: { load: '加载视频', send: '发送', aiDanmaku: 'AI 生成弹幕', autoGen: '自动生成' },
+            settings: { showDanmaku: '显示弹幕', speed: '弹幕速度' },
+            chat: { title: 'FencingAI 助手', advanced: '深度分析', clear: '清空对话', now: '现在',
+                    welcome: '您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？' },
+            action: { title: '动作分析', refresh: '重新分析', hint: '点击刷新按钮即可进行动作分析' },
+            knowledge: { title: '推荐学习', refresh: '重新推荐', hint: '点击刷新按钮获取相关知识推荐' },
+            fie: { title: '实时 FIE 数据' },
+            side: { knowledge: '击剑知识', recommend: '根据剑种推荐', quickHelp: '快速提问' },
+            quick: { foil: '花剑的有效部位', epee: '重剑 vs 花剑', sabre: '佩剑规则', scoring: '计分规则' },
+            common: { loading: '加载中...' },
+            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '发送弹幕...', chat: '向 AI 提问...' }
+        },
+        en: {
+            currentLabel: 'English',
+            nav: { home: 'Home', fie: 'FIE Data', chat: 'AI Assistant' },
+            hero: { title: 'Paste a YouTube link to start analysis', sub: 'Supports match replays, training videos, technique tutorials, and more' },
+            tabs: { danmaku: 'Danmaku', chat: 'AI Assistant', action: 'Action Analysis', knowledge: 'Knowledge', fie: 'FIE Data' },
+            weapon: { auto: 'Auto Detect', foil: 'Foil · FOIL', epee: 'Épée · ÉPÉE', sabre: 'Sabre · SABRE' },
+            btn: { load: 'Load Video', send: 'Send', aiDanmaku: 'AI Generate Danmaku', autoGen: 'Auto Generate' },
+            settings: { showDanmaku: 'Show Danmaku', speed: 'Danmaku Speed' },
+            chat: { title: 'FencingAI Assistant', advanced: 'Advanced Analysis', clear: 'Clear Chat', now: 'Now',
+                    welcome: 'Hello! I am the Fencing AI expert. Feel free to ask me any questions about fencing. How can I help you?' },
+            action: { title: 'Action Analysis', refresh: 'Re-analyze', hint: 'Click the refresh button to start action analysis' },
+            knowledge: { title: 'Recommended Learning', refresh: 'Refresh', hint: 'Click refresh to get relevant knowledge recommendations' },
+            fie: { title: 'Real-time FIE Data' },
+            side: { knowledge: 'Fencing Knowledge', recommend: 'Based on weapon', quickHelp: 'Quick Questions' },
+            quick: { foil: 'Foil target area', epee: 'Épée vs Foil', sabre: 'Sabre rules', scoring: 'Scoring rules' },
+            common: { loading: 'Loading...' },
+            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: 'Send a danmaku...', chat: 'Ask the AI...' }
+        },
+        ja: {
+            currentLabel: '日本語',
+            nav: { home: 'ホーム', fie: 'FIE データ', chat: 'AI アシスタント' },
+            hero: { title: 'YouTube リンクを貼り付けて分析を開始', sub: '試合の録画、トレーニング動画、テクニック解説などに対応' },
+            tabs: { danmaku: '弾幕', chat: 'AI アシスタント', action: '動作分析', knowledge: 'ナレッジ', fie: 'FIE データ' },
+            weapon: { auto: '自動識別', foil: 'フォイル · FOIL', epee: 'エペ · ÉPÉE', sabre: 'サーブル · SABRE' },
+            btn: { load: '動画を読み込む', send: '送信', aiDanmaku: 'AI 弾幕生成', autoGen: '自動生成' },
+            settings: { showDanmaku: '弾幕を表示', speed: '弾幕速度' },
+            chat: { title: 'FencingAI アシスタント', advanced: '詳細分析', clear: 'クリア', now: '今',
+                    welcome: 'こんにちは！フェンシングAI expert です。フェンシングに関するご質問にお答えします。' },
+            action: { title: '動作分析', refresh: '再分析', hint: '更新ボタンをクリックして動作分析を開始' },
+            knowledge: { title: '推奨学習', refresh: '更新', hint: '更新ボタンをクリックして関連知識を推薦' },
+            fie: { title: 'リアルタイム FIE データ' },
+            side: { knowledge: 'フェンシング知識', recommend: '武器に基づく推薦', quickHelp: 'クイック質問' },
+            quick: { foil: 'フォイル有効部位', epee: 'エペ vs フォイル', sabre: 'サーブル規則', scoring: '採点規則' },
+            common: { loading: '読み込み中...' },
+            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '弾幕を送信...', chat: 'AI に質問...' }
+        }
+    };
+
+    function setupLanguageSwitcher() {
+        const btn = document.getElementById('langBtn');
+        const dropdown = document.getElementById('langDropdown');
+        if (!btn || !dropdown) return;
+
+        // Restore saved language
+        const saved = localStorage.getItem('fencing_ai_lang') || 'zh';
+        applyLanguage(saved);
+
+        // Toggle dropdown
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('show');
+        });
+
+        // Click outside to close
+        document.addEventListener('click', () => {
+            dropdown.classList.remove('show');
+        });
+
+        // Language option click
+        dropdown.querySelectorAll('.lang-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const lang = opt.dataset.lang;
+                applyLanguage(lang);
+                localStorage.setItem('fencing_ai_lang', lang);
+                dropdown.classList.remove('show');
+            });
+        });
+    }
+
+    function getNested(obj, path) {
+        return path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
+    }
+
+    function applyLanguage(lang) {
+        const dict = i18n[lang];
+        if (!dict) return;
+
+        // Update active option
+        document.querySelectorAll('.lang-option').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.lang === lang);
+        });
+
+        // Update current label
+        const current = document.getElementById('langCurrent');
+        if (current) current.textContent = dict.currentLabel;
+
+        // Translate all data-i18n elements
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            const text = getNested(dict, key);
+            if (text) el.textContent = text;
+        });
+
+        // Translate all data-i18n-placeholder elements
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            const text = getNested(dict, key);
+            if (text) el.setAttribute('placeholder', text);
+        });
+
+        // Translate all data-i18n-title elements
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            const text = getNested(dict, key);
+            if (text) el.setAttribute('title', text);
+        });
+    }
 })();

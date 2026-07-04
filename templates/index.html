@@ -35,6 +35,25 @@
         <span class="top-bar__status" id="ai-status-pill">
             <i class="fas fa-circle"></i> <span id="ai-status-text">检查中...</span>
         </span>
+
+        <div class="lang-switcher" id="langSwitcher">
+            <button class="lang-btn" id="langBtn" type="button" aria-label="切换语言">
+                <i class="fas fa-globe"></i>
+                <span id="langCurrent">中文</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="lang-dropdown" id="langDropdown">
+                <button class="lang-option active" data-lang="zh" type="button">
+                    <span class="lang-flag">🇨🇳</span> 简体中文
+                </button>
+                <button class="lang-option" data-lang="en" type="button">
+                    <span class="lang-flag">🇺🇸</span> English
+                </button>
+                <button class="lang-option" data-lang="ja" type="button">
+                    <span class="lang-flag">🇯🇵</span> 日本語
+                </button>
+            </div>
+        </div>
     </div>
 </header>
 
@@ -42,15 +61,15 @@
 <aside class="sidebar" id="sidebar">
     <nav class="sidebar__nav">
         <a href="#" class="sidebar__item sidebar__item--active" data-target="home">
-            <i class="fas fa-house"></i><span>首页</span>
+            <i class="fas fa-house"></i><span data-i18n="nav.home">首页</span>
         </a>
         <hr class="sidebar__divider">
 
         <a href="#" class="sidebar__item" data-target="fie">
-            <i class="fas fa-trophy"></i><span>FIE 数据</span>
+            <i class="fas fa-trophy"></i><span data-i18n="nav.fie">FIE 数据</span>
         </a>
         <a href="#" class="sidebar__item" data-target="chat">
-            <i class="fas fa-microchip"></i><span>AI 助手</span>
+            <i class="fas fa-microchip"></i><span data-i18n="nav.chat">AI 助手</span>
         </a>
     </nav>
 </aside>
@@ -69,8 +88,8 @@
                         <div class="player__placeholder-icon">
                             <i class="fas fa-link"></i>
                         </div>
-                        <h2 class="player__placeholder-title">粘贴 YouTube 链接以开始分析</h2>
-                        <p class="player__placeholder-text">支持比赛回放、训练视频、技术教学等内容</p>
+                        <h2 class="player__placeholder-title" data-i18n="hero.title">粘贴 YouTube 链接以开始分析</h2>
+                        <p class="player__placeholder-text" data-i18n="hero.sub">支持比赛回放、训练视频、技术教学等内容</p>
                     </div>
                 </div>
                 <div class="danmaku-layer" id="danmaku-display"></div>
@@ -82,16 +101,16 @@
                     <div class="console__input-wrap">
                         <i class="fas fa-link console__input-icon"></i>
                         <input type="text" id="youtube-url" class="console__input"
-                               placeholder="https://www.youtube.com/watch?v=...">
-                    </div>
+                           placeholder="https://www.youtube.com/watch?v=..."
+                           data-i18n-placeholder="placeholder.url">
                     <select id="weapon-select" class="console__select">
-                        <option value="auto">智能识别</option>
-                        <option value="花剑">花剑 · FOIL</option>
-                        <option value="重剑">重剑 · ÉPÉE</option>
-                        <option value="佩剑">佩剑 · SABRE</option>
+                        <option value="auto" data-i18n="weapon.auto">智能识别</option>
+                        <option value="花剑" data-i18n="weapon.foil">花剑 · FOIL</option>
+                        <option value="重剑" data-i18n="weapon.epee">重剑 · ÉPÉE</option>
+                        <option value="佩剑" data-i18n="weapon.sabre">佩剑 · SABRE</option>
                     </select>
                     <button id="load-video" class="btn btn--primary">
-                        <i class="fas fa-play"></i> 加载视频
+                        <i class="fas fa-play"></i> <span data-i18n="btn.load">加载视频</span>
                     </button>
                 </div>
             </section>
@@ -109,43 +128,43 @@
             <section class="tabs">
                 <div class="tabs__list" role="tablist">
                     <button class="tab tab--active" data-tab="danmaku">
-                        <i class="fas fa-comment-dots"></i> 弹幕
+                        <i class="fas fa-comment-dots"></i> <span data-i18n="tabs.danmaku">弹幕</span>
                     </button>
                     <button class="tab" data-tab="chat">
-                        <i class="fas fa-robot"></i> AI 助手
+                        <i class="fas fa-robot"></i> <span data-i18n="tabs.chat">AI 助手</span>
                     </button>
                     <button class="tab" data-tab="action">
-                        <i class="fas fa-wave-square"></i> 动作分析
+                        <i class="fas fa-wave-square"></i> <span data-i18n="tabs.action">动作分析</span>
                     </button>
                     <button class="tab" data-tab="knowledge">
-                        <i class="fas fa-lightbulb"></i> 知识推荐
+                        <i class="fas fa-lightbulb"></i> <span data-i18n="tabs.knowledge">知识推荐</span>
                     </button>
                     <button class="tab" data-tab="fie">
-                        <i class="fas fa-trophy"></i> FIE 数据
+                        <i class="fas fa-trophy"></i> <span data-i18n="tabs.fie">FIE 数据</span>
                     </button>
                 </div>
 
                 <!-- Danmaku panel -->
                 <div class="panel" id="panel-danmaku">
                     <div class="panel__row">
-                        <input type="text" id="danmaku-input" class="input" placeholder="发送弹幕...">
-                        <button id="send-danmaku" class="btn btn--secondary">发送</button>
+                        <input type="text" id="danmaku-input" class="input" placeholder="发送弹幕..." data-i18n-placeholder="placeholder.danmaku">
+                        <button id="send-danmaku" class="btn btn--secondary" data-i18n="btn.send">发送</button>
                     </div>
                     <div class="panel__row panel__row--btns">
                         <button id="generate-ai-danmaku" class="btn btn--secondary btn--block">
-                            <i class="fas fa-sparkles"></i> AI 生成弹幕
+                            <i class="fas fa-sparkles"></i> <span data-i18n="btn.aiDanmaku">AI 生成弹幕</span>
                         </button>
                         <button id="auto-generate" class="btn btn--secondary btn--block">
-                            <i class="fas fa-arrows-rotate"></i> 自动生成
+                            <i class="fas fa-arrows-rotate"></i> <span data-i18n="btn.autoGen">自动生成</span>
                         </button>
                     </div>
                     <div class="panel__settings">
                         <label class="setting">
-                            <span>显示弹幕</span>
+                            <span data-i18n="settings.showDanmaku">显示弹幕</span>
                             <input type="checkbox" id="show-danmaku" checked class="switch">
                         </label>
                         <label class="setting">
-                            <span>弹幕速度</span>
+                            <span data-i18n="settings.speed">弹幕速度</span>
                             <input type="range" id="danmaku-speed" min="1" max="10" value="5" class="slider">
                         </label>
                     </div>
@@ -155,10 +174,10 @@
                 <div class="panel" id="panel-chat" hidden>
                     <div class="chat">
                         <div class="chat__header">
-                            <span class="chat__title">FencingAI 助手</span>
+                            <span class="chat__title" data-i18n="chat.title">FencingAI 助手</span>
                             <div class="chat__actions">
-                                <button class="icon-btn icon-btn--sm" id="advanced-analysis" title="深度分析"><i class="fas fa-microscope"></i></button>
-                                <button class="icon-btn icon-btn--sm" id="clear-chat" title="清空对话">
+                                <button class="icon-btn icon-btn--sm" id="advanced-analysis" title="深度分析" data-i18n-title="chat.advanced"><i class="fas fa-microscope"></i></button>
+                                <button class="icon-btn icon-btn--sm" id="clear-chat" title="清空对话" data-i18n-title="chat.clear">
                                     <i class="fas fa-rotate-right"></i>
                                 </button>
                             </div>
@@ -167,14 +186,14 @@
                             <div class="msg msg--ai">
                                 <div class="msg__avatar msg__avatar--ai"><i class="fas fa-microchip"></i></div>
                                 <div class="msg__body">
-                                    <div class="msg__author">FencingAI <span class="msg__time">现在</span></div>
-                                    <p>您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？</p>
+                                    <div class="msg__author">FencingAI <span class="msg__time" data-i18n="chat.now">现在</span></div>
+                                    <p data-i18n="chat.welcome">您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？</p>
                                 </div>
                             </div>
                         </div>
                         <div class="chat__input">
-                            <input type="text" id="chat-input" class="input" placeholder="向 AI 提问...">
-                            <button id="send-chat" class="icon-btn icon-btn--primary" title="发送">
+                            <input type="text" id="chat-input" class="input" placeholder="向 AI 提问..." data-i18n-placeholder="placeholder.chat">
+                            <button id="send-chat" class="icon-btn icon-btn--primary" title="发送" data-i18n-title="btn.send">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
@@ -184,36 +203,36 @@
                 <!-- Action analysis panel -->
                 <div class="panel" id="panel-action" hidden>
                     <div class="panel__header">
-                        <h3>动作分析</h3>
-                        <button id="refresh-insight" class="icon-btn icon-btn--sm" title="重新分析"><i class="fas fa-arrows-rotate"></i></button>
+                        <h3 data-i18n="action.title">动作分析</h3>
+                        <button id="refresh-insight" class="icon-btn icon-btn--sm" title="重新分析" data-i18n-title="action.refresh"><i class="fas fa-arrows-rotate"></i></button>
                     </div>
                     <div id="action-analysis-panel" class="panel__placeholder">
                         <i class="fas fa-wave-square"></i>
-                        <p>点击刷新按钮即可进行动作分析</p>
+                        <p data-i18n="action.hint">点击刷新按钮即可进行动作分析</p>
                     </div>
                 </div>
 
                 <!-- Knowledge panel -->
                 <div class="panel" id="panel-knowledge" hidden>
                     <div class="panel__header">
-                        <h3>推荐学习</h3>
-                        <button id="refresh-knowledge" class="icon-btn icon-btn--sm" title="重新推荐"><i class="fas fa-arrows-rotate"></i></button>
+                        <h3 data-i18n="knowledge.title">推荐学习</h3>
+                        <button id="refresh-knowledge" class="icon-btn icon-btn--sm" title="重新推荐" data-i18n-title="knowledge.refresh"><i class="fas fa-arrows-rotate"></i></button>
                     </div>
                     <div id="knowledge-recommendations" class="panel__placeholder">
                         <i class="fas fa-lightbulb"></i>
-                        <p>点击刷新按钮获取相关知识推荐</p>
+                        <p data-i18n="knowledge.hint">点击刷新按钮获取相关知识推荐</p>
                     </div>
                 </div>
 
                 <!-- FIE data panel -->
                 <div class="panel" id="panel-fie" hidden>
                     <div class="panel__header">
-                        <h3>实时 FIE 数据</h3>
+                        <h3 data-i18n="fie.title">实时 FIE 数据</h3>
                         <button id="refresh-fie" class="icon-btn icon-btn--sm"><i class="fas fa-arrows-rotate"></i></button>
                     </div>
                     <div id="fie-data" class="panel__placeholder">
                         <i class="fas fa-trophy"></i>
-                        <p>加载中...</p>
+                        <p data-i18n="common.loading">加载中...</p>
                     </div>
                 </div>
             </section>
@@ -222,23 +241,23 @@
         <!-- Secondary column: 击剑知识/赛事精选 -->
         <aside class="secondary">
             <div class="secondary__header">
-                <h3>击剑知识</h3>
-                <span class="secondary__sub" id="rec-sub">根据剑种推荐</span>
+                <h3 data-i18n="side.knowledge">击剑知识</h3>
+                <span class="secondary__sub" id="rec-sub" data-i18n="side.recommend">根据剑种推荐</span>
             </div>
 
             <div class="rec-list" id="rec-list">
                 <div class="rec rec--placeholder">
                     <i class="fas fa-spinner fa-spin"></i>
-                    <p>加载中...</p>
+                    <p data-i18n="common.loading">加载中...</p>
                 </div>
             </div>
 
             <div class="quick-help">
-                <h4>快速提问</h4>
-                <button class="quick-help__btn" data-q="花剑的有效部位是什么？">花剑的有效部位</button>
-                <button class="quick-help__btn" data-q="重剑和花剑有什么区别？">重剑 vs 花剑</button>
-                <button class="quick-help__btn" data-q="佩剑比赛能劈砍吗？">佩剑规则</button>
-                <button class="quick-help__btn" data-q="击剑比赛的计分规则？">计分规则</button>
+                <h4 data-i18n="side.quickHelp">快速提问</h4>
+                <button class="quick-help__btn" data-q="花剑的有效部位是什么？" data-i18n="quick.foil">花剑的有效部位</button>
+                <button class="quick-help__btn" data-q="重剑和花剑有什么区别？" data-i18n="quick.epee">重剑 vs 花剑</button>
+                <button class="quick-help__btn" data-q="佩剑比赛能劈砍吗？" data-i18n="quick.sabre">佩剑规则</button>
+                <button class="quick-help__btn" data-q="击剑比赛的计分规则？" data-i18n="quick.scoring">计分规则</button>
             </div>
         </aside>
     </div>
