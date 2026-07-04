@@ -538,11 +538,28 @@
                 if (layer) layer.innerHTML = '';
                 // 重新加载弹幕
                 if (modeState.currentVideoId) loadUserDanmaku(modeState.currentVideoId);
+                // 更新聊天输入框 placeholder（区分两种模式）
+                updateChatPlaceholder();
             });
         });
         // 初始化 active 状态
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === modeState.current));
+        // 初始化 placeholder
+        updateChatPlaceholder();
     }
+
+    function updateChatPlaceholder() {
+        const chatInput = document.getElementById('chat-input');
+        if (!chatInput) return;
+        const lang = state.currentLang || 'zh';
+        const dict = I18N[lang] || I18N.zh;
+        // hybrid 模式（弹幕+对话）显示 chatDanmaku，否则显示 chat
+        const key = modeState.current === 'hybrid' ? 'chatDanmaku' : 'chat';
+        chatInput.placeholder = (dict.placeholder && dict.placeholder[key]) || '';
+    }
+
+    // 监听语言变化，实时更新 placeholder
+    window.addEventListener('languageChanged', () => updateChatPlaceholder());
 
     // ====== Toolbar Switch Sync (显示弹幕开关视觉反馈) ======
     function setupToolbarSwitch() {
@@ -848,7 +865,7 @@
                 '比赛中期，双方已经': '比赛中期，双方已经',
                 '关键分时，运动员需要': '关键分时，运动员需要'
             },
-            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '发送弹幕...', chat: '向 AI 提问...' }
+            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '发送弹幕...', chat: '向 AI 提问...', chatDanmaku: '弹幕并向 AI 提问...' }
         },
         en: {
             currentLabel: 'English',
@@ -890,7 +907,7 @@
                 '比赛中期，双方已经': 'In the middle of the match, both sides have',
                 '关键分时，运动员需要': 'At key points, athletes need to'
             },
-            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: 'Send a danmaku...', chat: 'Ask the AI...' }
+            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: 'Send a danmaku...', chat: 'Ask the AI...', chatDanmaku: 'Danmaku & Ask the AI...' }
         },
         ja: {
             currentLabel: '日本語',
@@ -932,7 +949,7 @@
                 '比赛中期，双方已经': '試合中盤、両者はすでに',
                 '关键分时，运动员需要': 'キーポイント時、選手は'
             },
-            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '弾幕を送信...', chat: 'AI に質問...' }
+            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '弾幕を送信...', chat: 'AI に質問...', chatDanmaku: '弾幕＋AI に質問...' }
         }
     };
 
