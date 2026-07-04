@@ -26,6 +26,29 @@
         </a>
     </div>
 
+    <div class="top-bar__center">
+        <!-- Video input console moved to top bar -->
+        <div class="console console--inline">
+            <div class="console__row">
+                <div class="console__input-wrap">
+                    <i class="fas fa-link console__input-icon"></i>
+                    <input type="text" id="youtube-url" class="console__input"
+                       placeholder="https://www.youtube.com/watch?v=..."
+                       data-i18n-placeholder="placeholder.url">
+                </div>
+                <select id="weapon-select" class="console__select">
+                    <option value="auto" data-i18n="weapon.auto">智能识别</option>
+                    <option value="花剑" data-i18n="weapon.foil">花剑 · FOIL</option>
+                    <option value="重剑" data-i18n="weapon.epee">重剑 · ÉPÉE</option>
+                    <option value="佩剑" data-i18n="weapon.sabre">佩剑 · SABRE</option>
+                </select>
+                <button id="load-video" class="btn btn--primary">
+                    <i class="fas fa-play"></i> <span data-i18n="btn.load">加载视频</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="top-bar__right">
         <span class="top-bar__status" id="ai-status-pill">
             <i class="fas fa-circle"></i> <span id="ai-status-text">检查中...</span>
@@ -90,25 +113,7 @@
                 <div class="danmaku-layer" id="danmaku-display"></div>
             </section>
 
-            <!-- Video input console -->
-            <section class="console">
-                <div class="console__row">
-                    <div class="console__input-wrap">
-                        <i class="fas fa-link console__input-icon"></i>
-                        <input type="text" id="youtube-url" class="console__input"
-                           placeholder="https://www.youtube.com/watch?v=..."
-                           data-i18n-placeholder="placeholder.url">
-                    <select id="weapon-select" class="console__select">
-                        <option value="auto" data-i18n="weapon.auto">智能识别</option>
-                        <option value="花剑" data-i18n="weapon.foil">花剑 · FOIL</option>
-                        <option value="重剑" data-i18n="weapon.epee">重剑 · ÉPÉE</option>
-                        <option value="佩剑" data-i18n="weapon.sabre">佩剑 · SABRE</option>
-                    </select>
-                    <button id="load-video" class="btn btn--primary">
-                        <i class="fas fa-play"></i> <span data-i18n="btn.load">加载视频</span>
-                    </button>
-                </div>
-            </section>
+            <!-- Video input console 已移至顶部栏 -->
 
             <!-- Key moments timeline -->
             <section class="moments" id="moments" hidden>

@@ -89,6 +89,51 @@ img { max-width: 100%; display: block; }
     justify-content: flex-end;
 }
 
+/* 顶部栏中间区域 - 放置控制台 */
+.top-bar__center {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+}
+
+/* 控制台内联到顶部栏的样式 */
+.console--inline {
+    width: 100%;
+    max-width: 640px;
+    margin: 0;
+    background: transparent;
+    padding: 0;
+}
+.console--inline .console__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+.console--inline .console__input-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.console--inline .console__input {
+    height: 36px;
+    padding: 0 12px 0 36px;
+    font-size: 13px;
+}
+.console--inline .console__select {
+    height: 36px;
+    padding: 0 8px;
+    font-size: 13px;
+    min-width: 120px;
+    flex: 0 0 auto;
+}
+.console--inline .btn {
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+}
+
 .icon-btn {
     width: 40px;
     height: 40px;
@@ -1011,6 +1056,7 @@ img { max-width: 100%; display: block; }
 @media (max-width: 720px) {
     .top-bar__left { min-width: 0; }
     .top-bar__right { min-width: 0; }
+    .top-bar__center { display: none; }  /* 小屏隐藏控制台 */
     .top-bar__status span { display: none; }
     .logo__text { display: none; }
     .console__row { flex-wrap: wrap; }
