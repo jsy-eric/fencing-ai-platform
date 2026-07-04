@@ -66,15 +66,33 @@ def chat():
         if not user_message:
             return jsonify({'error': '请提供消息内容'}), 400
 
-        # 弹幕模式下让 AI 限制回复在 30 字以内
+        # 弹幕模式下让 AI 限制回复在 50 个汉字以内
         ai_response = fencing_ai.get_response(
             user_message,
             video_context=video_context,
             short_response=(mode == 'danmaku')
         )
-        # 前端再次保险截断（防御性处理）
-        if mode == 'danmaku' and len(ai_response) > 60:
-            ai_response = ai_response[:30].rstrip() + '...'
+
+        # 弹幕模式下，截断为 50 个汉字（不算标点和空格）
+        if mode == 'danmaku':
+            # 计算中文字符数（不包括标点）
+            import re
+            chinese_chars = re.findall(r'[\u4e00-\u9fff]', ai_response)
+            if len(chinese_chars) > 50:
+                # 如果中文字数超过 50，截取包含 50 个汉字的部分
+                truncated = ''
+                count = 0
+                for ch in ai_response:
+                    truncated += ch
+                    if re.match(r'[\u4e00-\u9fff]', ch):
+                        count += 1
+                    if count >= 50:
+                        break
+                ai_response = truncated.rstrip() + '...'
+            elif len(ai_response) > 100:
+                # 总字符数超过 100 也截断
+                ai_response = ai_response[:80].rstrip() + '...'
+
         return jsonify({
             'success': True,
             'response': ai_response,

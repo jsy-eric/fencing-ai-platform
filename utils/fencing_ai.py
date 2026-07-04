@@ -100,7 +100,7 @@ class FencingAI:
         Args:
             user_message: 用户消息
             video_context: 视频上下文
-            short_response: 是否限制短回复（用于弹幕模式，30字以内）
+            short_response: 是否限制短回复（用于弹幕模式，50个汉字以内）
         """
         # 记录对话历史
         self.conversation_history.append({
@@ -120,9 +120,22 @@ class FencingAI:
                 response = self._call_llm_api(user_message, video_context, short_response=short_response)
                 if response and len(response.strip()) > 0:
                     print(f"[{self.current_provider.capitalize()}] 成功获取回复，长度: {len(response)}")
-                    # 弹幕模式下后端保险截断
-                    if short_response and len(response) > 60:
-                        response = response[:30].rstrip() + '...'
+                    # 弹幕模式下保险截断：50 个汉字（不算标点）
+                    if short_response:
+                        import re
+                        chinese_chars = re.findall(r'[\u4e00-\u9fff]', response)
+                        if len(chinese_chars) > 50:
+                            truncated = ''
+                            count = 0
+                            for ch in response:
+                                truncated += ch
+                                if re.match(r'[\u4e00-\u9fff]', ch):
+                                    count += 1
+                                if count >= 50:
+                                    break
+                            response = truncated.rstrip() + '...'
+                        elif len(response) > 100:
+                            response = response[:80].rstrip() + '...'
                     # 记录AI回复
                     self.conversation_history.append({
                         "ai": response,
@@ -428,8 +441,8 @@ class FencingAI:
             # 构建系统提示词
             system_prompt = self.config.FENCING_SYSTEM_PROMPT
             if short_response:
-                # 弹幕模式：明确要求 30 字以内的极短回复
-                system_prompt += "\n\n【重要】当前是弹幕模式，请将回复严格控制在 30 个汉字以内（不含标点），简洁有力，不要使用列表或换行。"
+                # 弹幕模式：明确要求 50 个汉字以内的极短回复（不算标点和空格）
+                system_prompt += "\n\n【重要】当前是弹幕模式，请将回复严格控制在 50 个汉字以内（不算标点、空格、数字等），简洁有力，不要使用列表或换行。"
             if video_context:
                 system_prompt += f"\n\n当前上下文：{video_context}"
 
@@ -454,7 +467,7 @@ class FencingAI:
             }
 
             # 弹幕模式下限制 max_tokens
-            max_tokens = 80 if short_response else config["max_tokens"]
+            max_tokens = 150 if short_response else config["max_tokens"]
 
             payload = {
                 "model": config["model"],

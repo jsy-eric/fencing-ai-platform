@@ -552,14 +552,24 @@
         setTimeout(() => danmaku.remove(), duration * 1000);
     }
 
-    // ====== 弹幕模式下截断长文本 ======
-    function truncateForDanmaku(text, maxLen = 30) {
+    // ====== 弹幕模式下截断长文本（按汉字数量，不算标点） ======
+    function truncateForDanmaku(text, maxChineseChars = 50) {
         if (!text) return '';
-        // 去除多余空白
         text = String(text).replace(/\s+/g, ' ').trim();
-        if (text.length <= maxLen) return text;
-        // 在 maxLen 位置截断，加上省略号
-        return text.substring(0, maxLen) + '...';
+        // 计算汉字数量（不包括标点、空格、数字、英文字母）
+        const chineseChars = text.match(/[\u4e00-\u9fff]/g) || [];
+        if (chineseChars.length <= maxChineseChars) return text;
+        // 截取包含 maxChineseChars 个汉字的部分
+        let truncated = '';
+        let count = 0;
+        for (const ch of text) {
+            truncated += ch;
+            if (/[\u4e00-\u9fff]/.test(ch)) {
+                count++;
+            }
+            if (count >= maxChineseChars) break;
+        }
+        return truncated + '...';
     }
 
     // ====== Chat send with mode-aware danmaku ======
@@ -582,8 +592,8 @@
 
             // 2. 添加为用户弹幕（如果 hybrid 模式）
             if (isHybrid) {
-                // 用户弹幕超过 30 字也截断
-                const userDanmakuText = truncateForDanmaku(text, 30);
+                // 用户弹幕超过 50 个汉字也截断
+                const userDanmakuText = truncateForDanmaku(text, 50);
                 addDanmakuToLayer(userDanmakuText, 'user');
                 // 保存到视频弹幕库
                 if (videoId) {
