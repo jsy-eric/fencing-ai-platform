@@ -1340,3 +1340,127 @@ img { max-width: 100%; display: block; }
 .player {
     position: relative;
 }
+
+/* ========== AI Toolbar (合并所有配置项) ========== */
+.ai-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.ai-toolbar::-webkit-scrollbar {
+    display: none;
+}
+
+.toolbar-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.65);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.toolbar-btn.active {
+    background: rgba(255, 65, 54, 0.18);
+    color: #fff;
+    border-color: rgba(255, 65, 54, 0.5);
+}
+
+.toolbar-btn i {
+    font-size: 13px;
+    line-height: 1;
+}
+
+.toolbar-btn--switch {
+    cursor: pointer;
+}
+
+.toolbar-btn--switch input.toolbar-switch {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+.toolbar-btn--switch.active {
+    background: rgba(56, 132, 255, 0.18);
+    color: #fff;
+    border-color: rgba(56, 132, 255, 0.5);
+}
+
+.toolbar-btn--slider {
+    padding: 0 6px;
+    width: auto;
+    min-width: 80px;
+    border-radius: 16px;
+    gap: 4px;
+}
+
+.toolbar-slider {
+    width: 50px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+
+.toolbar-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.toolbar-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+}
+
+/* 让 chat__input 中的输入框区域高度协调 */
+#panel-ai-assistant .chat {
+    margin-bottom: 0;
+}
+
+#panel-ai-assistant {
+    display: flex;
+    flex-direction: column;
+}
+
+#panel-ai-assistant .chat {
+    flex: 1 1 auto;
+    min-height: 0;
+}

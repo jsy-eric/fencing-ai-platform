@@ -491,6 +491,19 @@
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === modeState.current));
     }
 
+    // ====== Toolbar Switch Sync (显示弹幕开关视觉反馈) ======
+    function setupToolbarSwitch() {
+        const sw = document.getElementById('show-danmaku');
+        const lbl = sw?.closest('.toolbar-btn');
+        if (!sw || !lbl) return;
+
+        const sync = () => {
+            lbl.classList.toggle('active', sw.checked);
+        };
+        sw.addEventListener('change', sync);
+        sync();
+    }
+
     // ====== Per-video Danmaku Storage ======
     function getVideoId() {
         const info = window.youtubeSystem?.getCurrentVideoInfo?.();
@@ -539,6 +552,16 @@
         setTimeout(() => danmaku.remove(), duration * 1000);
     }
 
+    // ====== 弹幕模式下截断长文本 ======
+    function truncateForDanmaku(text, maxLen = 30) {
+        if (!text) return '';
+        // 去除多余空白
+        text = String(text).replace(/\s+/g, ' ').trim();
+        if (text.length <= maxLen) return text;
+        // 在 maxLen 位置截断，加上省略号
+        return text.substring(0, maxLen) + '...';
+    }
+
     // ====== Chat send with mode-aware danmaku ======
     function setupChatSend() {
         const sendBtn = document.getElementById('send-chat');
@@ -550,19 +573,22 @@
             if (!text) return;
             const videoId = getVideoId();
             const now = Date.now();
+            const isHybrid = modeState.current === 'hybrid';
 
-            // 1. 添加到聊天记录
+            // 1. 添加到聊天记录（始终为完整内容）
             if (window.chatSystem?.addMessage) {
                 window.chatSystem.addMessage(text, 'user');
             }
 
             // 2. 添加为用户弹幕（如果 hybrid 模式）
-            if (modeState.current === 'hybrid') {
-                addDanmakuToLayer(text, 'user');
+            if (isHybrid) {
+                // 用户弹幕超过 30 字也截断
+                const userDanmakuText = truncateForDanmaku(text, 30);
+                addDanmakuToLayer(userDanmakuText, 'user');
                 // 保存到视频弹幕库
                 if (videoId) {
                     const list = getUserDanmaku(videoId);
-                    list.push({ time: now, text, type: 'user' });
+                    list.push({ time: now, text: userDanmakuText, original: text, type: 'user' });
                     saveUserDanmaku(videoId, list);
                 }
             }
@@ -576,12 +602,17 @@
                     body: JSON.stringify({ message: text, video_id: videoId })
                 });
                 const data = await r.json();
-                const reply = data.reply || data.response || data.message || '抱歉，AI 服务暂时不可用。';
+                const fullReply = data.reply || data.response || data.message || '抱歉，AI 服务暂时不可用。';
+
+                // 4. 聊天区域始终显示完整回复
                 if (window.chatSystem?.addMessage) {
-                    window.chatSystem.addMessage(reply, 'ai');
+                    window.chatSystem.addMessage(fullReply, 'ai');
                 }
-                if (modeState.current === 'hybrid') {
-                    addDanmakuToLayer(reply, 'ai');
+
+                // 5. 弹幕模式下，限制 AI 回复字数不超过 30 字
+                if (isHybrid) {
+                    const danmakuText = truncateForDanmaku(fullReply, 30);
+                    addDanmakuToLayer(danmakuText, 'ai');
                 }
             } catch (e) {
                 if (window.chatSystem?.addMessage) {
@@ -614,6 +645,7 @@
 
     // ====== Init mode switcher & chat send ======
     setupModeSwitcher();
+    setupToolbarSwitch();
     setupChatSend();
     setupVideoChangeListener();
 
