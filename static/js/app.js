@@ -1,4 +1,4 @@
-// FencingAI - 主控脚本
+// SportsAI-Fencing - 主控脚本
 // 串联：tabs、剑种同步、侧边栏导航、快速提问、AI 状态/切换、深度分析、关键时刻、动态推荐
 (() => {
     'use strict';
@@ -834,7 +834,7 @@
             weapon: { auto: '智能识别', foil: '花剑 · FOIL', epee: '重剑 · ÉPÉE', sabre: '佩剑 · SABRE' },
             btn: { load: '加载视频', send: '发送', aiDanmaku: 'AI 生成弹幕', autoGen: '自动生成' },
             settings: { showDanmaku: '显示弹幕', speed: '弹幕速度' },
-            chat: { title: 'FencingAI 助手', advanced: '深度分析', clear: '清空对话', now: '现在',
+            chat: { title: 'SportsAI-Fencing 助手', advanced: '深度分析', clear: '清空对话', now: '现在',
                     welcome: '您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？' },
             action: { title: '动作分析', refresh: '重新分析', hint: '点击刷新按钮即可进行动作分析' },
             knowledge: { title: '推荐学习', refresh: '重新推荐', hint: '点击刷新按钮获取相关知识推荐' },
@@ -876,7 +876,7 @@
             weapon: { auto: 'Auto Detect', foil: 'Foil · FOIL', epee: 'Épée · ÉPÉE', sabre: 'Sabre · SABRE' },
             btn: { load: 'Load Video', send: 'Send', aiDanmaku: 'AI Generate Danmaku', autoGen: 'Auto Generate' },
             settings: { showDanmaku: 'Show Danmaku', speed: 'Danmaku Speed' },
-            chat: { title: 'FencingAI Assistant', advanced: 'Advanced Analysis', clear: 'Clear Chat', now: 'Now',
+            chat: { title: 'SportsAI-Fencing Assistant', advanced: 'Advanced Analysis', clear: 'Clear Chat', now: 'Now',
                     welcome: 'Hello! I am the Fencing AI expert. Feel free to ask me any questions about fencing. How can I help you?' },
             action: { title: 'Action Analysis', refresh: 'Re-analyze', hint: 'Click the refresh button to start action analysis' },
             knowledge: { title: 'Recommended Learning', refresh: 'Refresh', hint: 'Click refresh to get relevant knowledge recommendations' },
@@ -918,7 +918,7 @@
             weapon: { auto: '自動識別', foil: 'フォイル · FOIL', epee: 'エペ · ÉPÉE', sabre: 'サーブル · SABRE' },
             btn: { load: '動画を読み込む', send: '送信', aiDanmaku: 'AI 弾幕生成', autoGen: '自動生成' },
             settings: { showDanmaku: '弾幕を表示', speed: '弾幕速度' },
-            chat: { title: 'FencingAI アシスタント', advanced: '詳細分析', clear: 'クリア', now: '今',
+            chat: { title: 'SportsAI-Fencing アシスタント', advanced: '詳細分析', clear: 'クリア', now: '今',
                     welcome: 'こんにちは！フェンシングAI expert です。フェンシングに関するご質問にお答えします。' },
             action: { title: '動作分析', refresh: '再分析', hint: '更新ボタンをクリックして動作分析を開始' },
             knowledge: { title: '推奨学習', refresh: '更新', hint: '更新ボタンをクリックして関連知識を推薦' },

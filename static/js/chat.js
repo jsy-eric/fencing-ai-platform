@@ -69,7 +69,7 @@ class ChatSystem {
             msg.innerHTML = `
                 <div class="msg__avatar msg__avatar--ai"><i class="fas fa-microchip"></i></div>
                 <div class="msg__body">
-                    <div class="msg__author">FencingAI <span class="msg__time">${this.formatTime(new Date())}</span></div>
+                    <div class="msg__author">SportsAI-Fencing <span class="msg__time">${this.formatTime(new Date())}</span></div>
                     <p>${escapeHtml(content)}</p>
                 </div>
             `;
@@ -86,7 +86,7 @@ class ChatSystem {
         typing.innerHTML = `
             <div class="msg__avatar msg__avatar--ai"><i class="fas fa-microchip"></i></div>
             <div class="msg__body">
-                <div class="msg__author">FencingAI <span class="msg__time">正在输入...</span></div>
+                <div class="msg__author">SportsAI-Fencing <span class="msg__time">正在输入...</span></div>
                 <div class="typing-dots"><span></span><span></span><span></span></div>
             </div>
         `;
