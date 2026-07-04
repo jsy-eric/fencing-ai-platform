@@ -28,9 +28,9 @@
 
     <div class="top-bar__right">
         <div class="ai-switch" id="ai-switch">
-            <button class="ai-switch__btn" data-ai="deepseek" title="DeepSeek V3">DeepSeek</button>
-            <button class="ai-switch__btn" data-ai="minimax" title="MiniMax">MiniMax</button>
-            <button class="ai-switch__btn" data-ai="local" title="本地知识库">本地</button>
+            <button class="ai-switch__btn" data-ai="deepseek" title="DeepSeek V3" data-i18n-title="ai.deepseek">DeepSeek</button>
+            <button class="ai-switch__btn" data-ai="minimax" title="MiniMax" data-i18n-title="ai.minimax">MiniMax</button>
+            <button class="ai-switch__btn" data-ai="local" title="本地知识库" data-i18n-title="ai.local" data-i18n="ai.localShort">本地</button>
         </div>
         <span class="top-bar__status" id="ai-status-pill">
             <i class="fas fa-circle"></i> <span id="ai-status-text">检查中...</span>
@@ -118,8 +118,8 @@
             <!-- Key moments timeline -->
             <section class="moments" id="moments" hidden>
                 <div class="moments__head">
-                    <h4><i class="fas fa-bullseye"></i> 关键时刻</h4>
-                    <span class="moments__hint" id="moments-hint">点击节点跳转</span>
+                    <h4><i class="fas fa-bullseye"></i> <span data-i18n="moments.title">关键时刻</span></h4>
+                    <span class="moments__hint" id="moments-hint" data-i18n="moments.hint">点击节点跳转</span>
                 </div>
                 <div class="moments__list" id="moments-list"></div>
             </section>

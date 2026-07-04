@@ -199,29 +199,29 @@
         el.innerHTML = `
             <div class="insight-block">
                 <div class="insight-block__head">
-                    <span class="insight-tag">动作</span>
-                    <span class="insight-title">${escapeHtml(a.action || '未识别')}</span>
-                    <span class="insight-confidence">置信度 ${Math.round((a.confidence || 0) * 100)}%</span>
+                    <span class="insight-tag">${escapeHtml(t('动作'))}</span>
+                    <span class="insight-title">${escapeHtml(t(a.action || '未识别'))}</span>
+                    <span class="insight-confidence">${escapeHtml(t('置信度'))} ${Math.round((a.confidence || 0) * 100)}%</span>
                 </div>
-                <p class="insight-text">${escapeHtml(a.analysis || '')}</p>
-                <p class="insight-text insight-text--dim">${escapeHtml(a.technique || '')}</p>
+                <p class="insight-text">${escapeHtml(t(a.analysis || ''))}</p>
+                <p class="insight-text insight-text--dim">${escapeHtml(t(a.technique || ''))}</p>
                 ${(a.tips && a.tips.length) ? `
                 <div class="insight-tips">
-                    <div class="insight-tips__label">要点</div>
-                    <ul>${a.tips.map(t => '<li>' + escapeHtml(t) + '</li>').join('')}</ul>
+                    <div class="insight-tips__label">${escapeHtml(t('要点'))}</div>
+                    <ul>${a.tips.map(tip => '<li>' + escapeHtml(t(tip)) + '</li>').join('')}</ul>
                 </div>` : ''}
             </div>
             <div class="insight-block">
                 <div class="insight-block__head">
-                    <span class="insight-tag insight-tag--blue">场景</span>
-                    <span class="insight-title">${escapeHtml(s.weapon || '未知')} · ${escapeHtml(s.competition_type || '比赛')} · ${escapeHtml(s.stage || '-')}</span>
+                    <span class="insight-tag insight-tag--blue">${escapeHtml(t('场景'))}</span>
+                    <span class="insight-title">${escapeHtml(t(s.weapon || '未知'))} · ${escapeHtml(t(s.competition_type || '比赛'))} · ${escapeHtml(t(s.stage || '-'))}</span>
                 </div>
                 ${(s.related_knowledge && s.related_knowledge.length) ? `
                 <div class="insight-list">
                     ${s.related_knowledge.map(k => `
                         <div class="insight-list__item">
-                            <strong>${escapeHtml(k.title)}</strong>
-                            <span>${escapeHtml(k.content)}</span>
+                            <strong>${escapeHtml(t(k.title))}</strong>
+                            <span>${escapeHtml(t(k.content))}</span>
                         </div>
                     `).join('')}
                 </div>` : ''}
@@ -257,11 +257,11 @@
             el.innerHTML = recs.map(k => `
                 <article class="kb-card">
                     <div class="kb-card__head">
-                        <span class="kb-card__type">${escapeHtml(k.type || '知识')}</span>
-                        <span class="kb-card__level">${escapeHtml(k.level || '')}</span>
+                        <span class="kb-card__type">${escapeHtml(t(k.type || '知识'))}</span>
+                        <span class="kb-card__level">${escapeHtml(t(k.level || ''))}</span>
                     </div>
-                    <h4 class="kb-card__title">${escapeHtml(k.title)}</h4>
-                    <p class="kb-card__content">${escapeHtml(k.content)}</p>
+                    <h4 class="kb-card__title">${escapeHtml(t(k.title))}</h4>
+                    <p class="kb-card__content">${escapeHtml(t(k.content))}</p>
                 </article>
             `).join('');
         } catch (e) {
@@ -308,11 +308,11 @@
                     <article class="rec" data-title="${escapeHtml(k.title)}">
                         <div class="rec__thumb" style="--c:${color}">
                             <i class="fas ${icon} rec__icon"></i>
-                            <span class="rec__cat">${escapeHtml(k.type || cat)}</span>
+                            <span class="rec__cat">${escapeHtml(t(k.type || cat))}</span>
                         </div>
                         <div class="rec__info">
-                            <h4 class="rec__title">${escapeHtml(k.title)}</h4>
-                            <p class="rec__ch">${escapeHtml(k.content || '')}</p>
+                            <h4 class="rec__title">${escapeHtml(t(k.title))}</h4>
+                            <p class="rec__ch">${escapeHtml(t(k.content || ''))}</p>
                         </div>
                     </article>
                 `;
@@ -501,6 +501,29 @@
             side: { knowledge: '击剑知识', recommend: '根据剑种推荐', quickHelp: '快速提问' },
             quick: { foil: '花剑的有效部位', epee: '重剑 vs 花剑', sabre: '佩剑规则', scoring: '计分规则' },
             common: { loading: '加载中...' },
+            ai: { localShort: '本地', local: '本地知识库', deepseek: 'DeepSeek V3', minimax: 'MiniMax' },
+            moments: { title: '关键时刻', hint: '点击节点跳转' },
+            dynamic: {
+                '技术': '技术', '战术': '战术',
+                '动作': '动作',
+                '比赛开局策略': '比赛开局策略',
+                '比赛中期战术': '比赛中期战术',
+                '关键分处理': '关键分处理',
+                '击剑基础姿势与步伐': '击剑基础姿势与步伐',
+                '花剑基本攻击动作': '花剑基本攻击动作',
+                '直刺技巧详解': '直刺技巧详解',
+                '转移刺技巧': '转移刺技巧',
+                '弓步刺动作要领': '弓步刺动作要领',
+                '防守与反击策略': '防守与反击策略',
+                '时机把握的重要性': '时机把握的重要性',
+                '判罚与裁判规则': '判罚与裁判规则',
+                '比赛节奏控制': '比赛节奏控制',
+                '体能分配技巧': '体能分配技巧',
+                '心理素质训练': '心理素质训练',
+                '比赛开局时，运动员需要观察对手的站位、习惯动作和反应速度': '比赛开局时，运动员需要观察对手的站位、习惯动作和反应速度',
+                '比赛中期，双方已经': '比赛中期，双方已经',
+                '关键分时，运动员需要': '关键分时，运动员需要'
+            },
             placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '发送弹幕...', chat: '向 AI 提问...' }
         },
         en: {
@@ -519,6 +542,29 @@
             side: { knowledge: 'Fencing Knowledge', recommend: 'Based on weapon', quickHelp: 'Quick Questions' },
             quick: { foil: 'Foil target area', epee: 'Épée vs Foil', sabre: 'Sabre rules', scoring: 'Scoring rules' },
             common: { loading: 'Loading...' },
+            ai: { localShort: 'Local', local: 'Local Knowledge', deepseek: 'DeepSeek V3', minimax: 'MiniMax' },
+            moments: { title: 'Key Moments', hint: 'Click node to jump' },
+            dynamic: {
+                '技术': 'Technique', '战术': 'Tactics',
+                '动作': 'Action',
+                '比赛开局策略': 'Match Opening Strategy',
+                '比赛中期战术': 'Mid-Match Tactics',
+                '关键分处理': 'Key Point Handling',
+                '击剑基础姿势与步伐': 'Fencing Basic Stance and Footwork',
+                '花剑基本攻击动作': 'Foil Basic Attack Moves',
+                '直刺技巧详解': 'Direct Thrust Techniques',
+                '转移刺技巧': 'Disengage Thrust Techniques',
+                '弓步刺动作要领': 'Lunge Thrust Essentials',
+                '防守与反击策略': 'Defense and Counter-Attack Strategy',
+                '时机把握的重要性': 'Importance of Timing',
+                '判罚与裁判规则': 'Penalties and Referee Rules',
+                '比赛节奏控制': 'Match Rhythm Control',
+                '体能分配技巧': 'Energy Distribution Tips',
+                '心理素质训练': 'Mental Training',
+                '比赛开局时，运动员需要观察对手的站位、习惯动作和反应速度': 'At the start of the match, athletes need to observe opponent\'s stance, habits, and reaction speed',
+                '比赛中期，双方已经': 'In the middle of the match, both sides have',
+                '关键分时，运动员需要': 'At key points, athletes need to'
+            },
             placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: 'Send a danmaku...', chat: 'Ask the AI...' }
         },
         ja: {
@@ -537,6 +583,29 @@
             side: { knowledge: 'フェンシング知識', recommend: '武器に基づく推薦', quickHelp: 'クイック質問' },
             quick: { foil: 'フォイル有効部位', epee: 'エペ vs フォイル', sabre: 'サーブル規則', scoring: '採点規則' },
             common: { loading: '読み込み中...' },
+            ai: { localShort: 'ローカル', local: 'ローカル知識ベース', deepseek: 'DeepSeek V3', minimax: 'MiniMax' },
+            moments: { title: 'キーモーメント', hint: 'ノードをクリックしてジャンプ' },
+            dynamic: {
+                '技术': 'テクニック', '战术': '戦術',
+                '动作': '動作',
+                '比赛开局策略': '試合開始戦略',
+                '比赛中期战术': '試合中盤戦術',
+                '关键分处理': 'キーポイント処理',
+                '击剑基础姿势与步伐': 'フェンシング基本姿勢と足さばき',
+                '花剑基本攻击动作': 'フォイル基本攻撃動作',
+                '直刺技巧详解': '突き技详解',
+                '转移刺技巧': '切り返し突き技',
+                '弓步刺动作要领': 'ランジュ突き要諦',
+                '防守与反击策略': '防御と反撃戦略',
+                '时机把握的重要性': 'タイミング把握の重要性',
+                '判罚与裁判规则': '判定と審判規則',
+                '比赛节奏控制': '試合リズムコントロール',
+                '体能分配技巧': '体力配分テクニック',
+                '心理素质训练': 'メンタルトレーニング',
+                '比赛开局时，运动员需要观察对手的站位、习惯动作和反应速度': '試合開始時、選手は相手の立ち位置、習慣動作、反応速度を観察する必要があります',
+                '比赛中期，双方已经': '試合中盤、両者はすでに',
+                '关键分时，运动员需要': 'キーポイント時、選手は'
+            },
             placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '弾幕を送信...', chat: 'AI に質問...' }
         }
     };
@@ -575,6 +644,29 @@
 
     function getNested(obj, path) {
         return path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
+    }
+
+    // 翻译动态内容（来自后端API的中文文本）
+    function getCurrentLang() {
+        return localStorage.getItem('fencing_ai_lang') || 'zh';
+    }
+
+    function t(text) {
+        if (!text) return text;
+        const lang = getCurrentLang();
+        if (lang === 'zh') return text;
+        const dict = i18n[lang];
+        if (!dict || !dict.dynamic) return text;
+        // 完整匹配
+        if (dict.dynamic[text]) return dict.dynamic[text];
+        // 尝试逐段替换
+        let result = text;
+        for (const [zh, translated] of Object.entries(dict.dynamic)) {
+            if (result.includes(zh)) {
+                result = result.split(zh).join(translated);
+            }
+        }
+        return result;
     }
 
     function applyLanguage(lang) {
