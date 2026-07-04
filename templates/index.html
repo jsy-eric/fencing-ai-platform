@@ -260,11 +260,18 @@
 
             <!-- 快速提问区（固定在次列底部） -->
             <div class="quick-help">
-                <h4 data-i18n="side.quickHelp">快速提问</h4>
-                <button class="quick-help__btn" data-q="花剑的有效部位是什么？" data-i18n="quick.foil">花剑的有效部位</button>
-                <button class="quick-help__btn" data-q="重剑和花剑有什么区别？" data-i18n="quick.epee">重剑 vs 花剑</button>
-                <button class="quick-help__btn" data-q="佩剑比赛能劈砍吗？" data-i18n="quick.sabre">佩剑规则</button>
-                <button class="quick-help__btn" data-q="击剑比赛的计分规则？" data-i18n="quick.scoring">计分规则</button>
+                <div class="quick-help__head">
+                    <h4 data-i18n="side.quickHelp">快速提问</h4>
+                    <button id="refresh-quick-help" class="icon-btn icon-btn--sm" data-i18n-title="quick.refresh" title="刷新问题">
+                        <i class="fas fa-arrows-rotate"></i>
+                    </button>
+                </div>
+                <div class="quick-help__list" id="quick-help-list">
+                    <button class="quick-help__btn" data-q="花剑的有效部位是什么？" data-i18n="quick.foil">花剑的有效部位</button>
+                    <button class="quick-help__btn" data-q="重剑和花剑有什么区别？" data-i18n="quick.epee">重剑 vs 花剑</button>
+                    <button class="quick-help__btn" data-q="佩剑比赛能劈砍吗？" data-i18n="quick.sabre">佩剑规则</button>
+                    <button class="quick-help__btn" data-q="击剑比赛的计分规则？" data-i18n="quick.scoring">计分规则</button>
+                </div>
             </div>
         </aside>
     </div>

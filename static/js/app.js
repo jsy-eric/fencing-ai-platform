@@ -61,9 +61,12 @@
         loadRecommendations();
     });
 
-    // ====== Quick help buttons ======
-    document.querySelectorAll('.quick-help__btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+    // ====== Quick help buttons（使用事件委托支持动态加载）======
+    const quickHelpList = document.getElementById('quick-help-list');
+    if (quickHelpList) {
+        quickHelpList.addEventListener('click', (e) => {
+            const btn = e.target.closest('.quick-help__btn');
+            if (!btn) return;
             const q = btn.dataset.q;
             switchTab('ai-assistant');
             setTimeout(() => {
@@ -74,7 +77,49 @@
                 }
             }, 50);
         });
-    });
+    }
+
+    // ====== Quick help 刷新按钮 ======
+    const refreshBtn = document.getElementById('refresh-quick-help');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+            // 转圈动画
+            refreshBtn.classList.add('refreshing');
+            refreshBtn.disabled = true;
+            try {
+                // 获取当前剑种和视频上下文
+                const weapon = document.getElementById('weapon-select')?.value || 'auto';
+                const videoInfo = window.youtubeSystem?.getCurrentVideoInfo?.();
+                const videoContext = videoInfo?.title || '';
+                const r = await fetch('/api/quick_questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ weapon, video_context: videoContext })
+                });
+                const data = await r.json();
+                if (data.questions && Array.isArray(data.questions)) {
+                    renderQuickQuestions(data.questions);
+                }
+            } catch (e) {
+                console.error('刷新快速提问失败:', e);
+            } finally {
+                refreshBtn.classList.remove('refreshing');
+                refreshBtn.disabled = false;
+            }
+        });
+    }
+
+    function renderQuickQuestions(questions) {
+        if (!quickHelpList) return;
+        quickHelpList.innerHTML = '';
+        questions.forEach(q => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-help__btn';
+            btn.dataset.q = q;
+            btn.textContent = q;
+            quickHelpList.appendChild(btn);
+        });
+    }
 
     // ====== Clear chat / Advanced analysis ======
     document.getElementById('clear-chat')?.addEventListener('click', () => {
@@ -770,7 +815,7 @@
             knowledge: { title: '推荐学习', refresh: '重新推荐', hint: '点击刷新按钮获取相关知识推荐' },
             fie: { title: '实时 FIE 数据' },
             side: { knowledge: '击剑知识', recommend: '根据剑种推荐', quickHelp: '快速提问' },
-            quick: { foil: '花剑的有效部位', epee: '重剑 vs 花剑', sabre: '佩剑规则', scoring: '计分规则' },
+            quick: { foil: '花剑的有效部位', epee: '重剑 vs 花剑', sabre: '佩剑规则', scoring: '计分规则', refresh: '刷新问题' },
             common: { loading: '加载中...' },
             ai: { localShort: '本地', local: '本地知识库', deepseek: 'DeepSeek V3', minimax: 'MiniMax' },
             moments: { title: '关键时刻', hint: '点击节点跳转' },
@@ -812,7 +857,7 @@
             knowledge: { title: 'Recommended Learning', refresh: 'Refresh', hint: 'Click refresh to get relevant knowledge recommendations' },
             fie: { title: 'Real-time FIE Data' },
             side: { knowledge: 'Fencing Knowledge', recommend: 'Based on weapon', quickHelp: 'Quick Questions' },
-            quick: { foil: 'Foil target area', epee: 'Épée vs Foil', sabre: 'Sabre rules', scoring: 'Scoring rules' },
+            quick: { foil: 'Foil target area', epee: 'Épée vs Foil', sabre: 'Sabre rules', scoring: 'Scoring rules', refresh: 'Refresh questions' },
             common: { loading: 'Loading...' },
             ai: { localShort: 'Local', local: 'Local Knowledge', deepseek: 'DeepSeek V3', minimax: 'MiniMax' },
             moments: { title: 'Key Moments', hint: 'Click node to jump' },
@@ -854,7 +899,7 @@
             knowledge: { title: '推奨学習', refresh: '更新', hint: '更新ボタンをクリックして関連知識を推薦' },
             fie: { title: 'リアルタイム FIE データ' },
             side: { knowledge: 'フェンシング知識', recommend: '武器に基づく推薦', quickHelp: 'クイック質問' },
-            quick: { foil: 'フォイル有効部位', epee: 'エペ vs フォイル', sabre: 'サーブル規則', scoring: '採点規則' },
+            quick: { foil: 'フォイル有効部位', epee: 'エペ vs フォイル', sabre: 'サーブル規則', scoring: '採点規則', refresh: '質問を更新' },
             common: { loading: '読み込み中...' },
             ai: { localShort: 'ローカル', local: 'ローカル知識ベース', deepseek: 'DeepSeek V3', minimax: 'MiniMax' },
             moments: { title: 'キーモーメント', hint: 'ノードをクリックしてジャンプ' },

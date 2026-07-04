@@ -214,6 +214,88 @@ def generate_danmaku():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/quick_questions', methods=['POST'])
+def quick_questions():
+    """生成快速提问问题（AI 根据剑种/视频上下文生成4个相关问题）"""
+    try:
+        data = request.get_json() or {}
+        weapon = data.get('weapon', 'auto')
+        video_context = data.get('video_context', '')
+
+        # 剑种中文名映射
+        weapon_names = {
+            '花剑': '花剑（FOIL）',
+            '重剑': '重剑（ÉPÉE）',
+            '佩剑': '佩剑（SABRE）',
+            'auto': '击剑'
+        }
+        weapon_label = weapon_names.get(weapon, weapon)
+
+        # 根据剑种和问题类型，构造 prompt 让 AI 生成 4 个不同问题
+        # 限制每个问题 12 字以内（按钮显示需要简短）
+        question_types = [
+            '基础规则',
+            '技术动作',
+            '战术策略',
+            '常见错误'
+        ]
+        prompt = f"""请针对{weapon_label}运动，生成 4 个常见的新手问题。
+要求：
+1. 每个问题不超过 12 个汉字
+2. 涵盖：{ '、'.join(question_types) }
+3. 适合击剑新手提问
+4. 直接返回 4 行问题，每行一个问题，不要编号，不要其他说明
+
+参考视频上下文：{video_context if video_context else '击剑比赛'}"""
+
+        questions_text = fencing_ai.get_response(
+            user_message=prompt,
+            video_context=video_context,
+            short_response=True  # 限制返回短文本
+        )
+
+        # 解析 4 个问题
+        questions = []
+        for line in questions_text.split('\n'):
+            line = line.strip()
+            # 去除可能的编号（"1." "1、" "①" 等）
+            import re
+            line = re.sub(r'^[0-9①②③④⑤⑥⑦⑧⑨⑩]+[\.、\s]\s*', '', line)
+            # 去除 - * 等符号
+            line = re.sub(r'^[-*•\.\s]+', '', line)
+            if line and len(line) > 2:
+                questions.append(line)
+            if len(questions) >= 4:
+                break
+
+        # 如果不足 4 个，用剑种默认问题补全
+        defaults = {
+            '花剑': ['花剑的有效部位？', '花剑如何判分？', '花剑进攻动作？', '花剑的防守？'],
+            '重剑': ['重剑的有效部位？', '重剑 vs 花剑？', '重剑双中怎么办？', '重剑战术特点？'],
+            '佩剑': ['佩剑的得分区？', '佩剑可以劈砍吗？', '佩剑的进攻？', '佩剑的防守？'],
+            'auto': ['击剑的种类？', '击剑的得分规则？', '击剑的装备？', '击剑的基本动作？']
+        }
+        default_list = defaults.get(weapon, defaults['auto'])
+        i = 0
+        while len(questions) < 4 and i < len(default_list):
+            if default_list[i] not in questions:
+                questions.append(default_list[i])
+            i += 1
+
+        return jsonify({
+            'success': True,
+            'questions': questions[:4],
+            'weapon': weapon
+        })
+    except Exception as e:
+        # 出错时返回默认问题
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'questions': ['击剑的种类？', '击剑的得分规则？', '击剑的装备？', '击剑的基本动作？']
+        })
+
+
 # ============================================================
 # FIE 数据
 # ============================================================
