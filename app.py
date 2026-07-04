@@ -303,7 +303,8 @@ def quick_questions():
 def get_fie_data():
     """获取 FIE 比赛数据"""
     try:
-        results = fie_collector.get_recent_results()
+        lang = request.args.get('lang', 'zh')
+        results = fie_collector.get_recent_results(lang=lang)
         return jsonify({'success': True, 'results': results})
     except Exception as e:
         return jsonify({'error': str(e)}), 500

@@ -170,41 +170,49 @@
     async function loadFieData() {
         const el = document.getElementById('fie-data');
         if (!el) return;
-        el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-spinner fa-spin"></i><p>加载中...</p></div>';
+        el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-spinner fa-spin"></i><p data-i18n="loading.text">加载中...</p></div>';
+        // 应用当前语言
+        const tEls = el.querySelectorAll('[data-i18n]');
+        if (window.applyI18n) tEls.forEach(e => e.textContent = window.t ? window.t(e.dataset.i18n) : e.textContent);
         try {
-            const r = await fetch('/api/fie_data');
+            const lang = state.currentLang || 'zh';
+            const r = await fetch(`/api/fie_data?lang=${lang}`);
             const data = await r.json();
             if (!data.success) throw new Error(data.error || '加载失败');
             state.fieLoaded = true;
             el.classList.remove('panel__placeholder');
-            el.innerHTML = (data.results || []).map(res => `
-                <article class="fie-card">
-                    <div class="fie-card__head">
-                        <span class="fie-card__tournament">${escapeHtml(res.tournament)}</span>
-                        <span class="fie-card__date">${escapeHtml(res.date || '')}</span>
-                    </div>
-                    <div class="fie-card__meta">
-                        <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(res.location || '')}</span>
-                        <span class="fie-card__weapon">${escapeHtml(res.weapon || '')}</span>
-                        <span class="fie-card__cat">${escapeHtml(res.category || '')}</span>
-                    </div>
-                    <div class="fie-card__score">${escapeHtml(res.score || '')}</div>
-                    <div class="fie-card__podium">
-                        <div class="podium-row podium-row--gold">
-                            <span class="podium-rank">🥇</span>
-                            <span>${escapeHtml(res.winner || '-')} ${res.winner_country ? '(' + escapeHtml(res.winner_country) + ')' : ''}</span>
-                        </div>
-                        <div class="podium-row podium-row--silver">
-                            <span class="podium-rank">🥈</span>
-                            <span>${escapeHtml(res.runner_up || '-')} ${res.runner_up_country ? '(' + escapeHtml(res.runner_up_country) + ')' : ''}</span>
-                        </div>
-                        <div class="podium-row podium-row--bronze">
-                            <span class="podium-rank">🥉</span>
-                            <span>${escapeHtml(res.third || '-')} ${res.third_country ? '(' + escapeHtml(res.third_country) + ')' : ''}</span>
-                        </div>
-                    </div>
-                </article>
-            `).join('') || '<div class="panel__placeholder"><i class="fas fa-trophy"></i><p>暂无数据</p></div>';
+            el.innerHTML = (data.results || []).map(res => {
+                const isTeam = /Team|队|代表/.test(res.category);
+                const winnerSuffix = isTeam ? '' : (res.winner_country ? ' (' + escapeHtml(res.winner_country) + ')' : '');
+                const runnerSuffix = isTeam ? '' : (res.runner_up_country ? ' (' + escapeHtml(res.runner_up_country) + ')' : '');
+                const thirdSuffix = isTeam ? '' : (res.third_country ? ' (' + escapeHtml(res.third_country) + ')' : '');
+                return '<article class="fie-card">' +
+                    '<div class="fie-card__head">' +
+                        '<span class="fie-card__tournament">' + escapeHtml(res.tournament) + '</span>' +
+                        '<span class="fie-card__date">' + escapeHtml(res.date || '') + '</span>' +
+                    '</div>' +
+                    '<div class="fie-card__meta">' +
+                        '<span><i class="fas fa-map-marker-alt"></i> ' + escapeHtml(res.location || '') + '</span>' +
+                        '<span class="fie-card__weapon">' + escapeHtml(res.weapon || '') + '</span>' +
+                        '<span class="fie-card__cat">' + escapeHtml(res.category || '') + '</span>' +
+                    '</div>' +
+                    '<div class="fie-card__score">' + escapeHtml(res.score || '') + '</div>' +
+                    '<div class="fie-card__podium">' +
+                        '<div class="podium-row podium-row--gold">' +
+                            '<span class="podium-rank">🥇</span>' +
+                            '<span>' + escapeHtml(res.winner || '-') + winnerSuffix + '</span>' +
+                        '</div>' +
+                        '<div class="podium-row podium-row--silver">' +
+                            '<span class="podium-rank">🥈</span>' +
+                            '<span>' + escapeHtml(res.runner_up || '-') + runnerSuffix + '</span>' +
+                        '</div>' +
+                        '<div class="podium-row podium-row--bronze">' +
+                            '<span class="podium-rank">🥉</span>' +
+                            '<span>' + escapeHtml(res.third || '-') + thirdSuffix + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</article>';
+            }).join('') || '<div class="panel__placeholder"><i class="fas fa-trophy"></i><p>暂无数据</p></div>';
         } catch (e) {
             el.innerHTML = '<div class="panel__placeholder"><i class="fas fa-triangle-exclamation"></i><p>加载失败: ' + escapeHtml(e.message) + '</p></div>';
         }

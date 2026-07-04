@@ -1,11 +1,90 @@
 import requests
 import json
 import time
+import re
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import random
 
 class FIEDataCollector:
+    # 多语言翻译字典
+    I18N = {
+        'weapons': {
+            '花剑': {'en': 'Foil', 'ja': 'フォイル'},
+            '重剑': {'en': 'Épée', 'ja': 'エペ'},
+            '佩剑': {'en': 'Sabre', 'ja': 'サーブル'},
+        },
+        'categories': {
+            '男子个人': {'en': "Men's Individual", 'ja': '男子個人'},
+            '女子个人': {'en': "Women's Individual", 'ja': '女子個人'},
+            '男子团体': {'en': "Men's Team", 'ja': '男子団体'},
+            '女子团体': {'en': "Women's Team", 'ja': '女子団体'},
+        },
+        'countries': {
+            '中国': {'en': 'CHN', 'ja': '中国'},
+            '法国': {'en': 'FRA', 'ja': 'フランス'},
+            '意大利': {'en': 'ITA', 'ja': 'イタリア'},
+            '美国': {'en': 'USA', 'ja': 'アメリカ'},
+            '俄罗斯': {'en': 'RUS', 'ja': 'ロシア'},
+            '韩国': {'en': 'KOR', 'ja': '韓国'},
+            '日本': {'en': 'JPN', 'ja': '日本'},
+            '德国': {'en': 'GER', 'ja': 'ドイツ'},
+            '匈牙利': {'en': 'HUN', 'ja': 'ハンガリー'},
+            '波兰': {'en': 'POL', 'ja': 'ポーランド'},
+            '埃及': {'en': 'EGY', 'ja': 'エジプト'},
+            '阿塞拜疆': {'en': 'AZE', 'ja': 'アゼルバイジャン'},
+        },
+        'locations': {
+            '巴黎': {'en': 'Paris', 'ja': 'パリ'},
+            '开罗': {'en': 'Cairo', 'ja': 'カイロ'},
+            '巴库': {'en': 'Baku', 'ja': 'バクー'},
+            '首尔': {'en': 'Seoul', 'ja': 'ソウル'},
+            '东京': {'en': 'Tokyo', 'ja': '東京'},
+            '纽约': {'en': 'New York', 'ja': 'ニューヨーク'},
+            '卡塔尼亚': {'en': 'Catania', 'ja': 'カターニア'},
+            '布达佩斯': {'en': 'Budapest', 'ja': 'ブダペスト'},
+            '莫斯科': {'en': 'Moscow', 'ja': 'モスクワ'},
+        },
+        'tournament_names': {
+            '2024年巴黎奥运会击剑比赛': {
+                'en': '2024 Paris Olympic Fencing',
+                'ja': '2024年パリオリンピックフェンシング'
+            },
+            '2024年世界击剑锦标赛': {
+                'en': '2024 World Fencing Championships',
+                'ja': '2024年世界フェンシング選手権'
+            },
+            '2024年欧洲击剑锦标赛': {
+                'en': '2024 European Fencing Championships',
+                'ja': '2024年ヨーロッパフェンシング選手権'
+            },
+            '2024年亚洲击剑锦标赛': {
+                'en': '2024 Asian Fencing Championships',
+                'ja': '2024年アジアフェンシング選手権'
+            },
+        },
+        'tournament_templates': {
+            'world_cup': {
+                'en': '{year} FIE World Cup - {city}',
+                'ja': '{year}年FIEワールドカップ {city}大会'
+            },
+            'grand_prix': {
+                'en': '{year} FIE Grand Prix - {city}',
+                'ja': '{year}年FIEグランプリ {city}大会'
+            }
+        },
+        'status': {
+            '已完成': {'en': 'Completed', 'ja': '完了'}
+        }
+    }
+
+    # 国家英文名映射（用于 ISO 代码 / 全名）
+    COUNTRY_EN_NAMES = {
+        '中国': 'China', '法国': 'France', '意大利': 'Italy', '美国': 'USA',
+        '俄罗斯': 'Russia', '韩国': 'South Korea', '日本': 'Japan', '德国': 'Germany',
+        '匈牙利': 'Hungary', '波兰': 'Poland', '埃及': 'Egypt', '阿塞拜疆': 'Azerbaijan'
+    }
+
     def __init__(self):
         self.base_url = "https://fie.org"
         self.api_endpoints = {
@@ -147,32 +226,83 @@ class FIEDataCollector:
             }
         ]
 
-    def get_recent_results(self, limit: int = 10) -> List[Dict]:
-        cache_key = f"recent_results_{limit}"
-        
+    def _tr(self, category: str, key: str, lang: str) -> str:
+        """根据 category 和 key 翻译"""
+        if lang == 'zh' or lang not in ('en', 'ja'):
+            return key
+        d = self.I18N.get(category, {})
+        v = d.get(key, {})
+        return v.get(lang, key)
+
+    def _translate_result(self, result: Dict, lang: str) -> Dict:
+        """翻译单条 FIE 结果数据"""
+        if lang == 'zh' or lang not in ('en', 'ja'):
+            return result
+        new = dict(result)
+        new['tournament'] = self._tr('tournament_names', result['tournament'], lang) or self._translate_template(result.get('tournament', ''), lang)
+        new['weapon'] = self._tr('weapons', result['weapon'], lang)
+        new['category'] = self._tr('categories', result['category'], lang)
+        new['location'] = self._tr('locations', result['location'], lang)
+        new['status'] = self._tr('status', result['status'], lang)
+        # 团体赛 winner_name 已包含国家名，跳过 winner_country 翻译
+        is_team = 'Team' in str(result.get('category', '')) or '团体' in str(result.get('category', '')) or '代表' in str(result.get('category', ''))
+        if is_team:
+            new['winner_country'] = self._tr('countries', result['winner_country'], lang) or self.COUNTRY_EN_NAMES.get(result['winner_country'], result['winner_country'])
+            new['runner_up_country'] = self._tr('countries', result['runner_up_country'], lang) or self.COUNTRY_EN_NAMES.get(result['runner_up_country'], result['runner_up_country'])
+            new['third_country'] = self._tr('countries', result['third_country'], lang) or self.COUNTRY_EN_NAMES.get(result['third_country'], result['third_country'])
+        else:
+            new['winner_country'] = self._tr('countries', result['winner_country'], lang) or self.COUNTRY_EN_NAMES.get(result['winner_country'], result['winner_country'])
+            new['runner_up_country'] = self._tr('countries', result['runner_up_country'], lang) or self.COUNTRY_EN_NAMES.get(result['runner_up_country'], result['runner_up_country'])
+            new['third_country'] = self._tr('countries', result['third_country'], lang) or self.COUNTRY_EN_NAMES.get(result['third_country'], result['third_country'])
+        return new
+
+    def _translate_template(self, name: str, lang: str) -> str:
+        """翻译模板化赛事名称（如 '2024年世界杯系列赛 - 巴黎站'）"""
+        if lang == 'zh' or lang not in ('en', 'ja'):
+            return name
+        # 匹配 "2024年世界杯系列赛 - XX站"
+        if '世界杯系列赛' in name:
+            m = re.search(r'(\d{4})年世界杯系列赛\s*-\s*(\S+)站', name)
+            if m:
+                year, city_zh = m.group(1), m.group(2)
+                city = self._tr('locations', city_zh, lang)
+                tpl = self.I18N['tournament_templates']['world_cup'].get(lang, name)
+                return tpl.format(year=year, city=city)
+        if '大奖赛' in name:
+            m = re.search(r'(\d{4})年大奖赛\s*-\s*(\S+)站', name)
+            if m:
+                year, city_zh = m.group(1), m.group(2)
+                city = self._tr('locations', city_zh, lang)
+                tpl = self.I18N['tournament_templates']['grand_prix'].get(lang, name)
+                return tpl.format(year=year, city=city)
+        return name
+
+    def get_recent_results(self, limit: int = 10, lang: str = 'zh') -> List[Dict]:
+        cache_key = f"recent_results_{limit}_{lang}"
+
         if self._is_cache_valid(cache_key):
             return self.cache[cache_key]["data"]
-        
+
         try:
-            results = self._fetch_fie_results(limit)
+            results = self._fetch_fie_results(limit, lang)
         except Exception as e:
             print(f"获取FIE数据失败: {e}")
-            results = self._generate_realistic_results(limit)
-        
+            results = self._generate_realistic_results(limit, lang)
+
         self._cache_data(cache_key, results)
         return results
 
-    def _fetch_fie_results(self, limit: int) -> List[Dict]:
+    def _fetch_fie_results(self, limit: int, lang: str = 'zh') -> List[Dict]:
         try:
             response = self.session.get(f"{self.base_url}/results", timeout=10)
             if response.status_code == 200:
-                return self._generate_realistic_results(limit)
+                return self._generate_realistic_results(limit, lang)
             else:
                 raise Exception(f"HTTP {response.status_code}")
         except requests.RequestException as e:
             raise Exception(f"网络请求失败: {e}")
 
-    def _generate_realistic_results(self, limit: int) -> List[Dict]:
+    def _generate_realistic_results(self, limit: int, lang: str = 'zh') -> List[Dict]:
         results = []
         
         for i in range(min(limit, len(self.real_tournaments))):
@@ -182,20 +312,36 @@ class FIEDataCollector:
             
             is_men = "男子" in category
             is_team = "团体" in category
-            
+
             if is_team:
                 winner_country = random.choice(list(self.athletes_by_country.keys()))
                 runner_country = random.choice([c for c in self.athletes_by_country.keys() if c != winner_country])
                 third_country = random.choice([c for c in self.athletes_by_country.keys() if c not in [winner_country, runner_country]])
-                
-                winner_name = f"{winner_country}队"
-                runner_name = f"{runner_country}队"
-                third_name = f"{third_country}队"
+
+                # 团队名称翻译
+                if lang == 'en':
+                    team_suffix = ' Team'
+                elif lang == 'ja':
+                    team_suffix = '代表'
+                else:
+                    team_suffix = '队'
+                # en 状态下用 ISO 代码，ja/zh 用国家名
+                if lang == 'en':
+                    winner_label = self._tr('countries', winner_country, lang)
+                    runner_label = self._tr('countries', runner_country, lang)
+                    third_label = self._tr('countries', third_country, lang)
+                else:
+                    winner_label = winner_country if lang == 'zh' else (self._tr('countries', winner_country, lang) or winner_country)
+                    runner_label = runner_country if lang == 'zh' else (self._tr('countries', runner_country, lang) or runner_country)
+                    third_label = third_country if lang == 'zh' else (self._tr('countries', third_country, lang) or third_country)
+                winner_name = f"{winner_label}{team_suffix}"
+                runner_name = f"{runner_label}{team_suffix}"
+                third_name = f"{third_label}{team_suffix}"
             else:
                 winner_country = random.choice(list(self.athletes_by_country.keys()))
                 runner_country = random.choice([c for c in self.athletes_by_country.keys() if c != winner_country])
                 third_country = random.choice([c for c in self.athletes_by_country.keys() if c not in [winner_country, runner_country]])
-                
+
                 gender_key = "men" if is_men else "women"
                 winner_name = random.choice(self.athletes_by_country[winner_country][gender_key])
                 runner_name = random.choice(self.athletes_by_country[runner_country][gender_key])
@@ -220,8 +366,9 @@ class FIEDataCollector:
                 "score": f"{score1}-{score2}",
                 "status": "已完成"
             }
-            results.append(result)
-        
+            # 根据语言翻译
+            results.append(self._translate_result(result, lang))
+
         results.sort(key=lambda x: x["date"], reverse=True)
         return results
 
