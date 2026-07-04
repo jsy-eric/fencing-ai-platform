@@ -562,11 +562,16 @@
     function updateChatPlaceholder() {
         const chatInput = document.getElementById('chat-input');
         if (!chatInput) return;
-        const lang = state.currentLang || 'zh';
-        const dict = I18N[lang] || I18N.zh;
-        // hybrid 模式（弹幕+对话）显示 chatDanmaku，否则显示 chat
-        const key = modeState.current === 'hybrid' ? 'chatDanmaku' : 'chat';
-        chatInput.placeholder = (dict.placeholder && dict.placeholder[key]) || '';
+        try {
+            const lang = (typeof state !== 'undefined' && state.currentLang) || 'zh';
+            // 防御：i18n 字典可能尚未初始化（hoist 顺序问题）
+            const dict = (typeof i18n !== 'undefined' && i18n[lang]) || (typeof i18n !== 'undefined' && i18n.zh) || null;
+            if (!dict) return;
+            const key = modeState.current === 'hybrid' ? 'chatDanmaku' : 'chat';
+            chatInput.placeholder = (dict.placeholder && dict.placeholder[key]) || '';
+        } catch (e) {
+            // 静默失败，不影响其他功能
+        }
     }
 
     // 监听语言变化，实时更新 placeholder
@@ -1058,5 +1063,15 @@
             const text = getNested(dict, key);
             if (text) el.setAttribute('title', text);
         });
+
+        // 聊天输入框 placeholder 翻译（区分模式）
+        const chatInput = document.getElementById('chat-input');
+        if (chatInput) {
+            // 从 localStorage 读取当前模式，hybrid/chat 区分
+            const mode = localStorage.getItem('fencing_ai_mode') || 'hybrid';
+            const phKey = mode === 'hybrid' ? 'chatDanmaku' : 'chat';
+            const phText = getNested(dict, `placeholder.${phKey}`);
+            if (phText) chatInput.placeholder = phText;
+        }
     }
 })();
