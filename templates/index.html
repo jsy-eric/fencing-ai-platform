@@ -120,9 +120,9 @@
             </section>
         </div>
 
-        <!-- Secondary column: 4 Tabs + 击剑知识 + 快速提问 -->
+        <!-- Secondary column: 5 Tabs (击剑知识作为第5个Tab) + 快速提问 -->
         <aside class="secondary">
-            <!-- 4 Tab 切换器 -->
+            <!-- 5 Tab 切换器 -->
             <div class="tabs">
                 <div class="tabs__list" role="tablist">
                     <button class="tab tab--active" data-tab="ai-assistant">
@@ -136,6 +136,9 @@
                     </button>
                     <button class="tab" data-tab="fie">
                         <i class="fas fa-trophy"></i> <span data-i18n="tabs.fie">FIE 数据</span>
+                    </button>
+                    <button class="tab" data-tab="fencing-knowledge">
+                        <i class="fas fa-book"></i> <span data-i18n="tabs.fencingKnowledge">击剑知识</span>
                     </button>
                 </div>
 
@@ -234,18 +237,19 @@
                         <p data-i18n="common.loading">加载中...</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- 击剑知识区（固定在次列，Tab 之下） -->
-            <div class="secondary__header">
-                <h3 data-i18n="side.knowledge">击剑知识</h3>
-                <span class="secondary__sub" id="rec-sub" data-i18n="side.recommend">根据剑种推荐</span>
-            </div>
-
-            <div class="rec-list" id="rec-list">
-                <div class="rec rec--placeholder">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p data-i18n="common.loading">加载中...</p>
+                <!-- 击剑知识 panel (原次列内容移到这里) -->
+                <div class="panel" id="panel-fencing-knowledge" hidden>
+                    <div class="panel__header">
+                        <h3 data-i18n="side.knowledge">击剑知识</h3>
+                        <span class="secondary__sub" id="rec-sub" data-i18n="side.recommend">根据剑种推荐</span>
+                    </div>
+                    <div class="rec-list" id="rec-list">
+                        <div class="rec rec--placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p data-i18n="common.loading">加载中...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

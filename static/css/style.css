@@ -625,10 +625,25 @@ img { max-width: 100%; display: block; }
    ==================================================== */
 .secondary { min-width: 0; }
 
-/* 次列内的 Tabs 区域：放在击剑知识之上 */
+/* 次列内的 Tabs 区域：占满宽度，5个tab横向均匀分布 */
 .secondary .tabs {
     margin-top: 0;
     margin-bottom: 24px;
+}
+
+.secondary .tabs__list {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+}
+
+.secondary .tab {
+    padding: 8px 4px;
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .secondary__header {
