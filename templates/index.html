@@ -73,7 +73,7 @@
 <main class="main" id="main">
 
     <div class="layout">
-        <!-- Primary column -->
+        <!-- Primary column (只保留视频和输入控制台) -->
         <div class="primary">
 
             <!-- Video player -->
@@ -118,9 +118,12 @@
                 </div>
                 <div class="moments__list" id="moments-list"></div>
             </section>
+        </div>
 
-            <!-- Tabs section -->
-            <section class="tabs">
+        <!-- Secondary column: 4 Tabs + 击剑知识 + 快速提问 -->
+        <aside class="secondary">
+            <!-- 4 Tab 切换器 -->
+            <div class="tabs">
                 <div class="tabs__list" role="tablist">
                     <button class="tab tab--active" data-tab="ai-assistant">
                         <i class="fas fa-robot"></i> <span data-i18n="tabs.aiAssistant">AI 助手</span>
@@ -231,11 +234,9 @@
                         <p data-i18n="common.loading">加载中...</p>
                     </div>
                 </div>
-            </section>
-        </div>
+            </div>
 
-        <!-- Secondary column: 击剑知识/赛事精选 -->
-        <aside class="secondary">
+            <!-- 击剑知识区（固定在次列，Tab 之下） -->
             <div class="secondary__header">
                 <h3 data-i18n="side.knowledge">击剑知识</h3>
                 <span class="secondary__sub" id="rec-sub" data-i18n="side.recommend">根据剑种推荐</span>
@@ -248,6 +249,7 @@
                 </div>
             </div>
 
+            <!-- 快速提问区（固定在次列底部） -->
             <div class="quick-help">
                 <h4 data-i18n="side.quickHelp">快速提问</h4>
                 <button class="quick-help__btn" data-q="花剑的有效部位是什么？" data-i18n="quick.foil">花剑的有效部位</button>

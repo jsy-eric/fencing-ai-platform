@@ -625,6 +625,12 @@ img { max-width: 100%; display: block; }
    ==================================================== */
 .secondary { min-width: 0; }
 
+/* 次列内的 Tabs 区域：放在击剑知识之上 */
+.secondary .tabs {
+    margin-top: 0;
+    margin-bottom: 24px;
+}
+
 .secondary__header {
     display: flex;
     justify-content: space-between;
@@ -1463,4 +1469,9 @@ img { max-width: 100%; display: block; }
 #panel-ai-assistant .chat {
     flex: 1 1 auto;
     min-height: 0;
+}
+
+/* 次列中的 chat 区域：限制高度，让次列整体内容可以滚动 */
+.secondary #panel-ai-assistant .chat__messages {
+    max-height: 360px;
 }
