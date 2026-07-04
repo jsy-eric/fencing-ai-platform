@@ -506,7 +506,7 @@
         zh: {
             currentLabel: '中文',
             nav: { home: '首页', fie: 'FIE 数据', chat: 'AI 助手' },
-            hero: { title: '粘贴 YouTube 链接以开始分析', sub: '支持比赛回放、训练视频、技术教学等内容' },
+            hero: { title: '粘贴视频链接开始', sub: '支持比赛回放、训练视频、技术教学等内容' },
             tabs: { danmaku: '弹幕', chat: 'AI 助手', action: '动作分析', knowledge: '知识推荐', fie: 'FIE 数据' },
             weapon: { auto: '智能识别', foil: '花剑 · FOIL', epee: '重剑 · ÉPÉE', sabre: '佩剑 · SABRE' },
             btn: { load: '加载视频', send: '发送', aiDanmaku: 'AI 生成弹幕', autoGen: '自动生成' },
