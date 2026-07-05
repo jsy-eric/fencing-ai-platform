@@ -843,6 +843,7 @@
     const i18n = {
         zh: {
             currentLabel: '中文',
+            site: { title: 'SportsAI-Fencing - 击剑AI智能体平台' },
             nav: { home: '首页', fie: 'FIE 数据', chat: 'AI 助手' },
             hero: { title: '粘贴视频链接开始', sub: '支持比赛回放、训练视频、技术教学等内容' },
             tabs: { aiAssistant: 'AI 助手', danmaku: '弹幕', chat: 'AI 助手', action: '动作分析', knowledge: '知识推荐', fie: 'FIE 数据', fencingKnowledge: '击剑知识' },
@@ -861,6 +862,10 @@
             common: { loading: '加载中...' },
             ai: { localShort: '本地', local: '本地知识库', deepseek: 'DeepSeek V3', minimax: 'MiniMax' },
             moments: { title: '关键时刻', hint: '点击节点跳转' },
+            upload: { title: '上传并分析视频', preparing: '准备中...' },
+            aiStatus: { checking: '检查中...', online: '在线', offline: '离线' },
+            aria: { menu: '菜单', langSwitch: '切换语言', close: '关闭' },
+            lang: { zh: '简体中文', en: 'English', ja: '日本語' },
             dynamic: {
                 '技术': '技术', '战术': '战术',
                 '动作': '动作',
@@ -880,12 +885,34 @@
                 '心理素质训练': '心理素质训练',
                 '比赛开局时，运动员需要观察对手的站位、习惯动作和反应速度': '比赛开局时，运动员需要观察对手的站位、习惯动作和反应速度',
                 '比赛中期，双方已经': '比赛中期，双方已经',
-                '关键分时，运动员需要': '关键分时，运动员需要'
+                '关键分时，运动员需要': '关键分时，运动员需要',
+                '抱歉，未能获取到回复。': '抱歉，未能获取到回复。',
+                '网络错误：': '网络错误：',
+                '对话已清空。您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？': '对话已清空。您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？',
+                '击剑比赛': '击剑比赛',
+                '正在观看：': '正在观看：',
+                '正在深度分析...': '正在深度分析...',
+                '分析失败': '分析失败',
+                '请先向 AI 提问，然后我才能对问题进行深度分析。': '请先向 AI 提问，然后我才能对问题进行深度分析。',
+                '刷新快速提问失败:': '刷新快速提问失败:',
+                '不支持的格式': '不支持的格式',
+                '文件过大': '文件过大',
+                '请使用': '请使用',
+                '最大支持': '最大支持',
+                '自动生成': '自动生成',
+                '停止生成': '停止生成',
+                '发送弹幕失败:': '发送弹幕失败:',
+                '生成AI弹幕失败:': '生成AI弹幕失败:',
             },
-            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '发送弹幕...', chat: '向 AI 提问...', chatDanmaku: '弹幕并向 AI 提问...' }
+            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '发送弹幕...', chat: '向 AI 提问...', chatDanmaku: '弹幕并向 AI 提问...' },
+            upload: { title: '上传并分析视频', preparing: '准备中...' },
+            aiStatus: { checking: '检查中...', online: '在线', offline: '离线' },
+            aria: { menu: '菜单', langSwitch: '切换语言', close: '关闭' },
+            lang: { zh: '简体中文', en: 'English', ja: '日本語' }
         },
         en: {
             currentLabel: 'English',
+            site: { title: 'SportsAI-Fencing - Fencing AI Agent Platform' },
             nav: { home: 'Home', fie: 'FIE Data', chat: 'AI Assistant' },
             hero: { title: 'Paste a YouTube link to start analysis', sub: 'Supports match replays, training videos, technique tutorials, and more' },
             tabs: { aiAssistant: 'AI Assistant', danmaku: 'Danmaku', chat: 'AI Assistant', action: 'Action Analysis', knowledge: 'Knowledge', fie: 'FIE Data', fencingKnowledge: 'Fencing Knowledge' },
@@ -923,9 +950,30 @@
                 '心理素质训练': 'Mental Training',
                 '比赛开局时，运动员需要观察对手的站位、习惯动作和反应速度': 'At the start of the match, athletes need to observe opponent\'s stance, habits, and reaction speed',
                 '比赛中期，双方已经': 'In the middle of the match, both sides have',
-                '关键分时，运动员需要': 'At key points, athletes need to'
+                '关键分时，运动员需要': 'At key points, athletes need to',
+                '抱歉，未能获取到回复。': 'Sorry, failed to get a reply.',
+                '网络错误：': 'Network error: ',
+                '对话已清空。您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？': 'Chat cleared. Hello! I am the Fencing AI expert. Feel free to ask me any questions about fencing. How can I help you?',
+                '击剑比赛': 'Fencing Match',
+                '正在观看：': 'Watching: ',
+                '正在深度分析...': 'Deep analysis in progress...',
+                '分析失败': 'Analysis failed',
+                '请先向 AI 提问，然后我才能对问题进行深度分析。': 'Please ask the AI first, then I can perform a deep analysis on the question.',
+                '刷新快速提问失败:': 'Failed to refresh quick questions: ',
+                '不支持的格式': 'Unsupported format',
+                '文件过大': 'File too large',
+                '请使用': 'Please use',
+                '最大支持': 'Maximum allowed',
+                '自动生成': 'Auto Generate',
+                '停止生成': 'Stop Generating',
+                '发送弹幕失败:': 'Failed to send danmaku: ',
+                '生成AI弹幕失败:': 'Failed to generate AI danmaku: ',
             },
-            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: 'Send a danmaku...', chat: 'Ask the AI...', chatDanmaku: 'Danmaku & Ask the AI...' }
+            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: 'Send a danmaku...', chat: 'Ask the AI...', chatDanmaku: 'Danmaku & Ask the AI...' },
+            upload: { title: 'Upload & Analyze Video', preparing: 'Preparing...' },
+            aiStatus: { checking: 'Checking...', online: 'Online', offline: 'Offline' },
+            aria: { menu: 'Menu', langSwitch: 'Switch Language', close: 'Close' },
+            lang: { zh: '简体中文', en: 'English', ja: '日本語' }
         },
         ja: {
             currentLabel: '日本語',
@@ -966,9 +1014,30 @@
                 '心理素质训练': 'メンタルトレーニング',
                 '比赛开局时，运动员需要观察对手的站位、习惯动作和反应速度': '試合開始時、選手は相手の立ち位置、習慣動作、反応速度を観察する必要があります',
                 '比赛中期，双方已经': '試合中盤、両者はすでに',
-                '关键分时，运动员需要': 'キーポイント時、選手は'
+                '关键分时，运动员需要': 'キーポイント時、選手は',
+                '抱歉，未能获取到回复。': '申し訳ありませんが、返信を取得できませんでした。',
+                '网络错误：': 'ネットワークエラー：',
+                '对话已清空。您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？': '会話がクリアされました。こんにちは！フェンシングAI expert です。フェンシングに関するご質問にお答えします。',
+                '击剑比赛': 'フェンシング試合',
+                '正在观看：': '視聴中：',
+                '正在深度分析...': '詳細分析中...',
+                '分析失败': '分析失敗',
+                '请先向 AI 提问，然后我才能对问题进行深度分析。': 'まず AI に質問してから、詳細な分析を行ってください。',
+                '刷新快速提问失败:': 'クイック質問の更新に失敗: ',
+                '不支持的格式': 'サポートされていない形式',
+                '文件过大': 'ファイルが大きすぎます',
+                '请使用': '次の形式を使用してください',
+                '最大支持': '最大サイズ',
+                '自动生成': '自動生成',
+                '停止生成': '生成停止',
+                '发送弹幕失败:': '弾幕送信失敗: ',
+                '生成AI弹幕失败:': 'AI 弾幕生成失敗: ',
             },
-            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '弾幕を送信...', chat: 'AI に質問...', chatDanmaku: '弾幕＋AI に質問...' }
+            placeholder: { url: 'https://www.youtube.com/watch?v=...', danmaku: '弾幕を送信...', chat: 'AI に質問...', chatDanmaku: '弾幕＋AI に質問...' },
+            upload: { title: '動画をアップロードして分析', preparing: '準備中...' },
+            aiStatus: { checking: '確認中...', online: 'オンライン', offline: 'オフライン' },
+            aria: { menu: 'メニュー', langSwitch: '言語を切り替え', close: '閉じる' },
+            lang: { zh: '简体中文', en: 'English', ja: '日本語' }
         }
     };
 
@@ -1046,6 +1115,11 @@
         const current = document.getElementById('langCurrent');
         if (current) current.textContent = dict.currentLabel;
 
+        // Update document.title
+        if (dict.site && dict.site.title) {
+            document.title = dict.site.title;
+        }
+
         // Translate all data-i18n elements
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
@@ -1067,6 +1141,13 @@
             if (text) el.setAttribute('title', text);
         });
 
+        // Translate all data-i18n-aria-label elements
+        document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+            const key = el.getAttribute('data-i18n-aria-label');
+            const text = getNested(dict, key);
+            if (text) el.setAttribute('aria-label', text);
+        });
+
         // 聊天输入框 placeholder 翻译（区分模式）
         const chatInput = document.getElementById('chat-input');
         if (chatInput) {
@@ -1077,4 +1158,10 @@
             if (phText) chatInput.placeholder = phText;
         }
     }
+
+    // 暴露到 window，让 chat.js / danmaku.js / local_video.js 用
+    window.i18n = i18n;
+    window.t = t;
+    window.applyI18n = applyLanguage;
+    window.getCurrentLang = getCurrentLang;
 })();

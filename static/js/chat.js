@@ -120,7 +120,7 @@ class ChatSystem {
     clearChatHistory() {
         if (!this.chatContainer) return;
         this.chatContainer.innerHTML = '';
-        this.addMessage('对话已清空。您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？', 'ai');
+        this.addMessage(window.t('对话已清空。您好！我是击剑AI专家，可以为您解答击剑相关问题。请问有什么可以帮助您的吗？'), 'ai');
     }
 }
 

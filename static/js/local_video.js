@@ -43,11 +43,11 @@ class LocalVideoSystem {
 
         const ext = (file.name.split('.').pop() || '').toLowerCase();
         if (!ALLOWED_EXT.includes(ext)) {
-            alert(`不支持的格式 .${ext}，请使用 ${ALLOWED_EXT.join('/')}`);
+            alert(`${window.t('不支持的格式')} .${ext}，${window.t('请使用')} ${ALLOWED_EXT.join('/')}`);
             return;
         }
         if (file.size > MAX_FILE_SIZE) {
-            alert(`文件过大（${(file.size/1024/1024).toFixed(1)}MB），最大支持 100MB`);
+            alert(`${window.t('文件过大')}（${(file.size/1024/1024).toFixed(1)}MB），${window.t('最大支持')} 100MB`);
             return;
         }
         this._uploadAndAnalyze(file);

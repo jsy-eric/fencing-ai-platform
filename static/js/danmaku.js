@@ -78,12 +78,12 @@ class DanmakuSystem {
                 clearInterval(this.autoGenerateInterval);
                 this.autoGenerateInterval = null;
             }
-            if (btn) btn.innerHTML = '<i class="fas fa-arrows-rotate"></i> 自动生成';
+            if (btn) btn.innerHTML = '<i class="fas fa-arrows-rotate"></i> ' + window.t('自动生成');
         } else {
             this.isAutoGenerating = true;
             this.generateAIDanmaku();
             this.autoGenerateInterval = setInterval(() => this.generateAIDanmaku(), 5000);
-            if (btn) btn.innerHTML = '<i class="fas fa-stop"></i> 停止生成';
+            if (btn) btn.innerHTML = '<i class="fas fa-stop"></i> ' + window.t('停止生成');
         }
     }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SportsAI-Fencing - 击剑AI智能体平台</title>
+    <title data-i18n="site.title">SportsAI-Fencing - 击剑AI智能体平台</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
 <!-- ============== TOP HEADER ============== -->
 <header class="top-bar">
     <div class="top-bar__left">
-        <button class="icon-btn" id="menu-toggle" aria-label="菜单">
+        <button class="icon-btn" id="menu-toggle" aria-label="菜单" data-i18n-aria-label="aria.menu">
             <i class="fas fa-bars"></i>
         </button>
         <a href="#" class="logo">
@@ -55,24 +55,24 @@
 
     <div class="top-bar__right">
         <span class="top-bar__status" id="ai-status-pill">
-            <i class="fas fa-circle"></i> <span id="ai-status-text">检查中...</span>
+            <i class="fas fa-circle"></i> <span id="ai-status-text" data-i18n="aiStatus.checking">检查中...</span>
         </span>
 
         <div class="lang-switcher" id="langSwitcher">
-            <button class="lang-btn" id="langBtn" type="button" aria-label="切换语言">
+            <button class="lang-btn" id="langBtn" type="button" aria-label="切换语言" data-i18n-aria-label="aria.langSwitch">
                 <i class="fas fa-globe"></i>
-                <span id="langCurrent">中文</span>
+                <span id="langCurrent" data-i18n="currentLabel">中文</span>
                 <i class="fas fa-chevron-down"></i>
             </button>
             <div class="lang-dropdown" id="langDropdown">
                 <button class="lang-option active" data-lang="zh" type="button">
-                    <span class="lang-flag">🇨🇳</span> 简体中文
+                    <span class="lang-flag">🇨🇳</span> <span data-i18n="lang.zh">简体中文</span>
                 </button>
                 <button class="lang-option" data-lang="en" type="button">
-                    <span class="lang-flag">🇺🇸</span> English
+                    <span class="lang-flag">🇺🇸</span> <span data-i18n="lang.en">English</span>
                 </button>
                 <button class="lang-option" data-lang="ja" type="button">
-                    <span class="lang-flag">🇯🇵</span> 日本語
+                    <span class="lang-flag">🇯🇵</span> <span data-i18n="lang.ja">日本語</span>
                 </button>
             </div>
         </div>
@@ -302,25 +302,26 @@
     <div class="upload-progress__inner">
         <div class="upload-progress__head">
             <i class="fas fa-cloud-upload-alt"></i>
-            <h4 id="upload-title">上传并分析视频</h4>
-            <button class="icon-btn icon-btn--ghost" id="upload-cancel" aria-label="关闭">
+            <h4 id="upload-title" data-i18n="upload.title">上传并分析视频</h4>
+            <button class="icon-btn icon-btn--ghost" id="upload-cancel" aria-label="关闭" data-i18n-aria-label="aria.close">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="upload-progress__bar">
             <div class="upload-progress__fill" id="upload-fill"></div>
         </div>
-        <p class="upload-progress__step" id="upload-step">准备中...</p>
+        <p class="upload-progress__step" id="upload-step" data-i18n="upload.preparing">准备中...</p>
         <p class="upload-progress__file" id="upload-file"></p>
     </div>
 </div>
 
 <!-- ============== SCRIPTS ============== -->
+<!-- app.js 必须先加载（其他 JS 用 window.t / window.i18n） -->
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
 <script src="{{ url_for('static', filename='js/danmaku.js') }}"></script>
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 <script src="{{ url_for('static', filename='js/youtube.js') }}"></script>
 <script src="{{ url_for('static', filename='js/local_video.js') }}"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
 
 </body>
 </html>
