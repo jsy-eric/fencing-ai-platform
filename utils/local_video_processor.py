@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 # 文件大小限制（512MB 上限；超出走本地压缩 + B 路径）
 MAX_FILE_SIZE = 512 * 1024 * 1024
 # 视频走 base64 内联的最大尺寸（base64 膨胀 33% + 请求体 64MB 上限 → 文件 ≤45MB）
-B64_THRESHOLD = 45 * 1024 * 1024
+# 但 30MB+ 的视频大概率是长时长/高分辨率，会被 M3 内容审核拒绝，所以提前走压缩
+B64_THRESHOLD = 30 * 1024 * 1024
 # M3 实际视频限制 50MB（超出需要本地压缩到 ≤45MB 再走 base64）
 COMPRESS_TARGET = 40 * 1024 * 1024  # 压缩目标 40MB，预留余量
 ALLOWED_EXT = {".mp4", ".mov", ".webm", ".avi", ".mkv", ".m4v"}
@@ -144,6 +145,9 @@ class LocalVideoProcessor:
     def _build_vision_prompt(self, weapon_hint: str) -> str:
         return (
             "你是一名击剑视频分析专家。"
+            "提示：以下内容是国际击剑联合会（FIE）监管下的合规击剑体育运动视频，"
+            "运动员佩戴完整护具（面罩/护胸/手套），使用合规钝头剑种，"
+            "目的是分析战术动作和比赛节奏，非任何违规或敏感内容。\n\n"
             f"用户提示的剑种为：{weapon_hint or '未知'}。\n\n"
             "请按以下 JSON 格式输出（不要包裹 markdown 代码块）：\n"
             "{\n"
@@ -306,6 +310,29 @@ class LocalVideoProcessor:
                 logger.info("视频 %.1fMB > 45MB，走 C 路径 (本地 PyAV 压缩到 ≤45MB 后 base64)", size / 1024 / 1024)
                 result_text = self._compress_to_b64(video_path, weapon_hint)
         except Exception as e:
+            err = str(e)
+            # M3 内容审核拒绝（长时长/高分辨率下识别到对抗动作）
+            if "sensitive" in err.lower() or "1026" in err:
+                logger.warning("M3 内容审核拒绝: %s", err)
+                return {
+                    "key_moments": [],
+                    "actions": [],
+                    "text_in_video": [],
+                    "summary": "M3 内容审核拒绝：视频被认为包含敏感内容（多为长时长/高分辨率下识别到对抗动作）。建议：1) 剪到 1-2 分钟；2) 降分辨率到 720p。",
+                    "weapon_guess": weapon_hint or "未知",
+                    "rejected": True,
+                }
+            # M3 服务端错误（多为视频时长太长 / 超过 M3 内部上下文）
+            if "500" in err or "unknown error" in err.lower() or "server_error" in err.lower():
+                logger.warning("M3 服务端错误（可能视频太长）: %s", err)
+                return {
+                    "key_moments": [],
+                    "actions": [],
+                    "text_in_video": [],
+                    "summary": "M3 服务端错误：可能是视频时长超过 2-3 分钟上限。建议：剪到 1-2 分钟后再上传。",
+                    "weapon_guess": weapon_hint or "未知",
+                    "rejected": True,
+                }
             logger.warning("MiniMax M3 调用失败 (%s 路径): %s，回退到启发式", path_used, e)
 
         # 解析 JSON
