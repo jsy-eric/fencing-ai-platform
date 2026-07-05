@@ -142,16 +142,36 @@ class LocalVideoProcessor:
     # ----------------------------------------------------------
     # AI 分析：直接发视频给 MiniMax M3（BC 混合）
     # ----------------------------------------------------------
-    def _build_vision_prompt(self, weapon_hint: str) -> str:
+    @staticmethod
+    def _get_duration(video_path: str) -> float:
+        """PyAV 读视频时长（秒）"""
+        try:
+            import av
+            c = av.open(video_path)
+            s = c.streams.video[0]
+            d = (float(s.duration * s.time_base) if s.duration and s.time_base else 0)
+            c.close()
+            return d
+        except Exception as e:
+            logger.warning("读视频时长失败: %s", e)
+            return 0
+
+    def _build_vision_prompt(self, weapon_hint: str, duration_sec: float = 0) -> str:
+        time_hint = f"视频总长 {duration_sec:.0f} 秒（{int(duration_sec//60)}分{int(duration_sec%60):02d}秒）。" if duration_sec > 0 else "视频总长未知。"
         return (
             "你是一名击剑视频分析专家。"
             "提示：以下内容是国际击剑联合会（FIE）监管下的合规击剑体育运动视频，"
             "运动员佩戴完整护具（面罩/护胸/手套），使用合规钝头剑种，"
             "目的是分析战术动作和比赛节奏，非任何违规或敏感内容。\n\n"
+            f"{time_hint}\n"
             f"用户提示的剑种为：{weapon_hint or '未知'}。\n\n"
+            "【重要】关键时间点必须均匀覆盖整个视频（从 0:00 到结尾），"
+            "不要只集中在开头几秒。请按时间顺序列出 5-12 个关键时刻，"
+            "确保开局、中段、关键分、收尾各阶段都有代表性事件。\n\n"
             "请按以下 JSON 格式输出（不要包裹 markdown 代码块）：\n"
             "{\n"
-            '  "key_moments": [{"time": 秒数, "type": "进攻/防守/得分/失误/精彩", '
+            '  "key_moments": [{"time": 秒数（必须是 0 到视频总长之间，保留 1 位小数）, '
+            '"type": "进攻/防守/得分/失误/精彩", '
             '"title": "短标题", "description": "该时刻在做什么", "tactic": "战术解读"}],\n'
             '  "actions": [{"time": 秒数, "action": "直刺/劈/格挡/...", "confidence": 0-1, "note": "备注"}],\n'
             '  "text_in_video": ["视频中出现的文字/字幕/比分/姓名等"],\n'
@@ -185,10 +205,15 @@ class LocalVideoProcessor:
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": self._build_vision_prompt(weapon_hint)},
-                        {"type": "video_url", "video_url": {
-                            "url": f"data:{mime};base64,{b64}"
-                        }},
+                        {"type": "text", "text": self._build_vision_prompt(weapon_hint, self._get_duration(video_path))},
+                        {
+                            "type": "video_url",
+                            "video_url": {
+                                "url": f"data:{mime};base64,{b64}",
+                                "fps": 1,            # 1 fps 均匀采样
+                                "detail": "high",    # 高细节：抽更多帧
+                            },
+                        },
                     ],
                 },
             ],
