@@ -193,13 +193,27 @@ class LocalVideoProcessor:
                 },
             ],
             "temperature": 0.3,
-            "max_tokens": 1500,
+            "max_tokens": 4000,
         }
-        r = requests.post(url, json=payload, headers=headers, timeout=300)
-        if r.status_code >= 400:
-            raise RuntimeError(f"MiniMax b64 失败 {r.status_code}: {r.text[:200]}")
-        data = r.json()
-        return (data.get("choices") or [{}])[0].get("message", {}).get("content", "")
+        last_err = None
+        for attempt in range(1, 4):  # M3 间歇性 500，最多重试 3 次
+            try:
+                print(f"[M3] 尝试 {attempt}/3 → POST {url[:50]}... payload {len(b64)/1024/1024:.1f}MB b64", flush=True)
+                r = requests.post(url, json=payload, headers=headers, timeout=300)
+                print(f"[M3] 响应 status={r.status_code} time={r.elapsed.total_seconds():.1f}s", flush=True)
+                if r.status_code >= 400:
+                    raise RuntimeError(f"MiniMax b64 失败 {r.status_code}: {r.text[:200]}")
+                data = r.json()
+                content = (data.get("choices") or [{}])[0].get("message", {}).get("content", "")
+                print(f"[M3] 成功 content 长度 {len(content)}", flush=True)
+                return content
+            except Exception as e:
+                last_err = e
+                print(f"[M3] 失败 (尝试 {attempt}/3): {e}", flush=True)
+                if attempt < 3:
+                    import time
+                    time.sleep(3)
+        raise last_err
 
     def _compress_to_b64(self, video_path: str, weapon_hint: str) -> str:
         """C 路径（替代方案）：>45MB 视频先本地 PyAV 压缩到 ≤45MB，再走 B 路径
@@ -335,14 +349,72 @@ class LocalVideoProcessor:
                 }
             logger.warning("MiniMax M3 调用失败 (%s 路径): %s，回退到启发式", path_used, e)
 
-        # 解析 JSON
+        # 解析 JSON（M3 会先 <think>...</think> 输出思考过程，再输出 JSON）
         if result_text:
-            m = re.search(r"\{[\s\S]*\}", result_text)
-            if m:
+            candidate = None
+
+            # 1) 优先：从 </think> 之后取（如果有 think 块的话）
+            split_idx = result_text.rfind('</think>')
+            if split_idx >= 0:
+                after_think = result_text[split_idx + len('</think>'):].strip()
+                # 如果 think 块后是空（没结束标签的极端情况），则用整段
+                if not after_think:
+                    after_think = result_text
+            else:
+                # 没 think 块，用整段
+                after_think = result_text
+            print(f"[JSON] think块后长度: {len(after_think)}", flush=True)
+            print(f"[JSON] think块后前 200: {after_think[:200]!r}", flush=True)
+
+            # 2) 去 markdown 代码块包裹
+            m_code = re.search(r'```(?:json)?\s*(\{[\s\S]*?\})\s*```', after_think)
+            if m_code:
+                candidate = m_code.group(1)
+                print(f"[JSON] 从代码块匹配到", flush=True)
+            else:
+                # 3) 用栈匹配找最外层 JSON（处理嵌套 { }）
+                start = after_think.find('{')
+                print(f"[JSON] 代码块无匹配，找 {{ 位置: {start}", flush=True)
+                if start >= 0:
+                    depth = 0
+                    in_string = False
+                    escape = False
+                    end = -1
+                    for i in range(start, len(after_think)):
+                        ch = after_think[i]
+                        if escape:
+                            escape = False
+                            continue
+                        if ch == '\\':
+                            escape = True
+                            continue
+                        if ch == '"' and not escape:
+                            in_string = not in_string
+                            continue
+                        if in_string:
+                            continue
+                        if ch == '{':
+                            depth += 1
+                        elif ch == '}':
+                            depth -= 1
+                            if depth == 0:
+                                end = i + 1
+                                break
+                    print(f"[JSON] 栈匹配 end: {end}", flush=True)
+                    if end > start:
+                        candidate = after_think[start:end]
+                        print(f"[JSON] candidate 长度: {len(candidate)}, 前 100: {candidate[:100]!r}", flush=True)
+
+            if candidate:
                 try:
-                    return json.loads(m.group(0))
+                    parsed = json.loads(candidate)
+                    print(f"[JSON] ✅ 解析成功 keys: {list(parsed.keys())}", flush=True)
+                    return parsed
                 except Exception as e:
-                    logger.warning("JSON 解析失败: %s\n原始: %s", e, result_text[:300])
+                    print(f"[JSON] ❌ 解析失败: {e}\n候选: {candidate[:500]}", flush=True)
+                    logger.warning("JSON 解析失败: %s", e)
+            else:
+                print(f"[JSON] ❌ candidate 为空，跳过", flush=True)
 
         # 启发式回退（API 失败 / key 缺失）
         return self._fallback_analysis(weapon_hint, size)
