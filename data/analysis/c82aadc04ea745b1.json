@@ -1,0 +1,154 @@
+{
+  "video_id": "c82aadc04ea745b1",
+  "duration": 132.16666666666666,
+  "fps": 30.0,
+  "resolution": "960x544",
+  "file_size_mb": 8.6,
+  "analyze_path": "b64",
+  "key_moments": [
+    {
+      "time": 0.0,
+      "type": "highlight",
+      "title": "Fencers assume en garde position → Fighters assume ready stance",
+      "description": "Two fencers face each other on the strip, raising their foils and assuming the en garde position at the start of the bout. → Two fighters face each other on the mat, raising their swords and taking the ready stance at the start of the match.",
+      "tactic": "Standard opening stance, assessing distance and opponent readiness → Standard opening stance, judging distance and opponent readiness"
+    },
+    {
+      "time": 12.5,
+      "type": "attack → strike",
+      "title": "Initial attack and parry → First strike and block",
+      "description": "One fencer launches a thrust attack which is parried by the opponent, who attempts a counter-riposte. → One fighter launches a poke strike which is blocked by the opponent, who tries a counter-return.",
+      "tactic": "Standard attack-defend sequence, testing opponent's reaction time → Standard strike-defend sequence, testing opponent's reaction time"
+    },
+    {
+      "time": 25.0,
+      "type": "defense → guarding",
+      "title": "Defensive parry-riposte → Defensive block-return",
+      "description": "Fencer executes a circular parry sixte followed by a quick riposte to the opponent's flank. → Fighter does a circular block to the upper-right followed by a quick return to the opponent's side.",
+      "tactic": "Defensive parry-riposte combination, a fundamental foil technique → Defensive block-return combination, a basic sword technique"
+    },
+    {
+      "time": 40.0,
+      "type": "score → score",
+      "title": "Score awarded after exchange → Point given after exchange",
+      "description": "After a quick exchange, the referee halts the bout and awards a touch to one fencer, updating the scoreboard. → After a quick exchange, the referee stops the match and gives a point to one fighter, updating the scoreboard.",
+      "tactic": "Quick touch scored via preparation attack → Quick point scored through setup strike"
+    },
+    {
+      "time": 55.0,
+      "type": "attack → strike",
+      "title": "Aggressive lunge attack → Aggressive forward-thrust strike",
+      "description": "Fencer on the right executes a full lunge attack extending fully into the opponent's guard, scoring a valid touch. → Fighter on the right does a full forward-thrust strike extending fully into the opponent's guard, scoring a valid point.",
+      "tactic": "Aggressive fleche/lunge attack, committing fully to score a touch → Aggressive running/forward-thrust strike, committing fully to score a point"
+    },
+    {
+      "time": 70.0,
+      "type": "highlight → highlight",
+      "title": "Fencers reset after intense exchange → Fighters reset after intense exchange",
+      "description": "After a flurry of attacks and parries, both fencers retreat to their starting lines to reset position. → After a burst of strikes and blocks, both fighters go back to their starting lines to reset position.",
+      "tactic": "Resetting distance to reassess and plan next attack → Resetting distance to rethink and plan next strike"
+    },
+    {
+      "time": 85.0,
+      "type": "attack → strike",
+      "title": "Counter-attack on preparation → Counter-strike on setup",
+      "description": "Fencer executes a perfectly timed counter-attack as the opponent begins their advance. → Fighter does a perfectly timed counter-strike as the opponent starts their advance.",
+      "tactic": "Counter-time tactic, catching opponent in preparation phase → Counter-time tactic, catching opponent in setup phase"
+    },
+    {
+      "time": 100.0,
+      "type": "score → score",
+      "title": "Tactical touch in second period → Tactical point in second period",
+      "description": "A carefully executed second-intention attack earns a touch after drawing the opponent's parry. → A carefully done trick-strike earns a point after drawing out the opponent's block.",
+      "tactic": "Second intention attack, a classic high-level foil tactic → Trick-strike, a classic high-level sword tactic"
+    },
+    {
+      "time": 115.0,
+      "type": "defense → guarding",
+      "title": "Strong defensive</think>",
+      "description": "Fencer successfully defends a strong attack and recovers to en garde without yielding ground. → Fighter successfully guards against a strong strike and recovers to ready stance without losing ground.",
+      "tactic": "Defensive priority management, maintaining right-of-way → Defensive priority management, keeping priority"
+    },
+    {
+      "time": 130.0,
+      "type": "highlight → highlight",
+      "title": "Final bout conclusion → Final match end",
+      "description": "The bout concludes with a handshake between the fencers as the referee announces the final score. → The match ends with a handshake between the fighters as the referee announces the final score.",
+      "tactic": "Sportsmanship ritual at the conclusion of competition → Sportsmanship ritual at the end of competition"
+    }
+  ],
+  "actions": [
+    {
+      "time": 0.5,
+      "action": "en garde stance → ready stance",
+      "confidence": 0.95,
+      "note": "Both fencers raise weapons and assume standard en garde position"
+    },
+    {
+      "time": 1.5,
+      "action": "Both fencers raise weapons and assume standard en garde position → Both fighters raise weapons and take standard ready stance",
+      "confidence": 0.9,
+      "note": "Fencers close distance in measured steps"
+    },
+    {
+      "time": 5.0,
+      "action": "advance → advance (keep)",
+      "confidence": 0.85,
+      "note": "Fencer on left extends arm in a direct thrust"
+    },
+    {
+      "time": 15.0,
+      "action": "Fencers close distance in measured steps → Fighters close distance in measured steps",
+      "confidence": 0.88,
+      "note": "Circular parry followed by immediate counter-attack"
+    },
+    {
+      "time": 30.0,
+      "action": "thrust → poke",
+      "confidence": 0.92,
+      "note": "Full extension lunge attack"
+    },
+    {
+      "time": 50.0,
+      "action": "Fencer on left extends arm in a direct thrust → Fighter on left extends arm in a direct poke",
+      "confidence": 0.85,
+      "note": "Fencer back-steps to maintain distance"
+    },
+    {
+      "time": 70.0,
+      "action": "parry-riposte → block-response",
+      "confidence": 0.8,
+      "note": "Running attack with cross-over step"
+    },
+    {
+      "time": 95.0,
+      "action": "Circular parry followed by immediate counter-attack → Circular block followed by immediate counter-strike",
+      "confidence": 0.87,
+      "note": "Timed counter-attack in opposition"
+    },
+    {
+      "time": 120.0,
+      "action": "lunge → forward thrust",
+      "confidence": 0.9,
+      "note": "Strong lateral parry deflecting opponent's blade"
+    },
+    {
+      "time": 130.0,
+      "action": "Full extension lunge attack → Full extension forward thrust strike",
+      "confidence": 0.98,
+      "note": "Traditional handshake between competitors at bout end"
+    }
+  ],
+  "text_in_video": [
+    "STRATIS ARENA → STRATIS ARENA (keep as name)",
+    "SALE MARIE → SALE MARIE (keep as name)",
+    "FIU → FIU (keep as name)",
+    "DURKAN → DURKAN (keep as name)",
+    "BURRHAN → BURRHAN (keep as name)",
+    "21 → 21 (keep)",
+    "STRATIS ARENA BASKETBALL → STRATIS ARENA BASKETBALL (keep as name)"
+  ],
+  "summary": "The video captures a fencing competition held at the Stratis Arena, featuring multiple strips where athletes compete simultaneously. The camera focuses on the central strip where two foil fencers engage in a complete bout. The match showcases fundamental and advanced techniques including en garde positioning, measured advances, thrust attacks, parry-riposte combinations, full lunge attacks, and counter-attacks. The right fencer, distinguished by blue socks, demonstrates aggressive attacking while the left fencer employs tactical defense and counter-time strategies. The bout progresses through multiple exchanges with touches awarded based on right-of-way rules. The video concludes with the traditional handshake between competitors, exemplifying the sportsmanship inherent in fencing.",
+  "weapon_guess": "foil",
+  "analyzed_at": "2026-07-05T14:03:36.722462"
+}

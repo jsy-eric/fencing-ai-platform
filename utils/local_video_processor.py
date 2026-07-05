@@ -290,7 +290,7 @@ class LocalVideoProcessor:
                 },
             ],
             "temperature": 0.3,
-            "max_tokens": 4000,
+            "max_tokens": 8000,
         }
         last_err = None
         for attempt in range(1, 4):  # M3 间歇性 500，最多重试 3 次
@@ -422,6 +422,7 @@ class LocalVideoProcessor:
                 result_text = self._compress_to_b64(video_path, weapon_hint, lang)
         except Exception as e:
             err = str(e)
+            print(f"[ERR] M3 异常 caught: err={err[:300]!r}", flush=True)
             # M3 内容审核拒绝（长时长/高分辨率下识别到对抗动作）
             if "sensitive" in err.lower() or "1026" in err:
                 logger.warning("M3 内容审核拒绝: %s", err)
@@ -501,6 +502,20 @@ class LocalVideoProcessor:
                     if end > start:
                         candidate = after_think[start:end]
                         print(f"[JSON] candidate 长度: {len(candidate)}, 前 100: {candidate[:100]!r}", flush=True)
+                else:
+                    # 栈匹配失败（M3 输出被 max_tokens 截断，JSON 不完整）
+                    # 用 raw_decode 尝试从 start 处开始解析，
+                    # 如果能解析出第一个完整 JSON 对象（哪怕后面被截断），也用之
+                    print(f"[JSON] 栈匹配失败，尝试 raw_decode 补救...", flush=True)
+                    try:
+                        import json as _json
+                        decoder = _json.JSONDecoder()
+                        obj, consumed = decoder.raw_decode(after_think, start)
+                        import json as _json2
+                        candidate = _json2.dumps(obj, ensure_ascii=False)
+                        print(f"[JSON] ✅ raw_decode 成功，consumed={consumed}，截断后 JSON 长度 {len(candidate)}", flush=True)
+                    except Exception as _e:
+                        print(f"[JSON] ❌ raw_decode 也失败: {_e}", flush=True)
 
             if candidate:
                 try:

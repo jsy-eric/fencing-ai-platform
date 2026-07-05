@@ -1,0 +1,14 @@
+{
+  "video_id": "3d7f6412369c85bb",
+  "duration": 480.0,
+  "fps": 30.0,
+  "resolution": "1280x720",
+  "file_size_mb": 2.22,
+  "analyze_path": "b64",
+  "key_moments": [],
+  "actions": [],
+  "text_in_video": [],
+  "summary": "M3 服务端错误：可能是视频时长超过 2-3 分钟上限。建议：剪到 1-2 分钟后再上传。",
+  "weapon_guess": "花剑",
+  "analyzed_at": "2026-07-05T13:58:47.153878"
+}
