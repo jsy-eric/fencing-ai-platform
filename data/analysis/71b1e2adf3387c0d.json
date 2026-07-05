@@ -1,0 +1,55 @@
+{
+  "video_id": "71b1e2adf3387c0d",
+  "duration": 6.0,
+  "fps": 25.0,
+  "resolution": "320x240",
+  "file_size_mb": 0.02,
+  "analyze_path": "b64",
+  "key_moments": [
+    {
+      "time": 0.1,
+      "type": "进攻",
+      "title": "双方接近",
+      "description": "两名选手（黄色/红色方块代表）从两侧向场地中央移动，进入交锋距离",
+      "tactic": "试探性接近，寻找出手时机"
+    },
+    {
+      "time": 0.2,
+      "type": "进攻",
+      "title": "交叉穿越",
+      "description": "两名选手剑尖区域接触后继续移动，发生交叉换位",
+      "tactic": "进攻交锋后迅速通过，可能存在刺击或格挡交锋"
+    },
+    {
+      "time": 0.3,
+      "type": "精彩",
+      "title": "完成交锋",
+      "description": "双方完成交错，红色方移至左侧，黄色方移至右侧",
+      "tactic": "典型的一击脱离（hit and run）战术"
+    }
+  ],
+  "actions": [
+    {
+      "time": 0.1,
+      "action": "前进",
+      "confidence": 0.7,
+      "note": "双方同时向前移动进入攻击距离"
+    },
+    {
+      "time": 0.2,
+      "action": "直刺",
+      "confidence": 0.5,
+      "note": "剑身交叉区域，可能发生直刺交锋"
+    },
+    {
+      "time": 0.3,
+      "action": "后撤",
+      "confidence": 0.6,
+      "note": "交锋后双方迅速脱离恢复距离"
+    }
+  ],
+  "text_in_video": [],
+  "summary": "一段极简的二维动画：两个色块（代表两名花剑选手）从画面左右两侧向中间移动，在约0.2秒处剑尖区域接触交叉，随后各自向对侧穿越分开，完成一次短距离交锋脱离。",
+  "weapon_guess": "花剑",
+  "analyzed_at": "2026-07-05T11:23:13.762257"
+}

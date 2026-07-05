@@ -156,8 +156,18 @@ class LocalVideoProcessor:
             logger.warning("读视频时长失败: %s", e)
             return 0
 
-    def _build_vision_prompt(self, weapon_hint: str, duration_sec: float = 0) -> str:
+    def _build_vision_prompt(self, weapon_hint: str, duration_sec: float = 0, lang: str = "zh") -> str:
         time_hint = f"视频总长 {duration_sec:.0f} 秒（{int(duration_sec//60)}分{int(duration_sec%60):02d}秒）。" if duration_sec > 0 else "视频总长未知。"
+
+        # 三种语言完整 prompt 模板
+        if lang == "en":
+            return self._build_vision_prompt_en(weapon_hint, duration_sec, time_hint)
+        if lang == "ja":
+            return self._build_vision_prompt_ja(weapon_hint, duration_sec, time_hint)
+        return self._build_vision_prompt_zh(weapon_hint, duration_sec, time_hint)
+
+    @staticmethod
+    def _build_vision_prompt_zh(weapon_hint: str, duration_sec: float, time_hint: str) -> str:
         return (
             "你是一名击剑视频分析专家。"
             "提示：以下内容是国际击剑联合会（FIE）监管下的合规击剑体育运动视频，"
@@ -181,7 +191,65 @@ class LocalVideoProcessor:
             "只输出 JSON，不要其他说明。"
         )
 
-    def _call_minimax_b64(self, video_path: str, weapon_hint: str) -> str:
+    @staticmethod
+    def _build_vision_prompt_en(weapon_hint: str, duration_sec: float, time_hint: str) -> str:
+        time_hint_en = f"Total video length: {duration_sec:.0f} seconds ({int(duration_sec//60)}:{int(duration_sec%60):02d})." if duration_sec > 0 else "Total video length: unknown."
+        return (
+            "🚨 CRITICAL LANGUAGE INSTRUCTION 🚨\n"
+            "You MUST output ALL text content EXCLUSIVELY in English.\n"
+            "DO NOT use Chinese (中文), Japanese (日本語), or any other language. ONLY English.\n"
+            "If the video has Chinese subtitles or Chinese speaker, TRANSLATE them into English.\n"
+            "If you are unsure, default to English. English is mandatory.\n\n"
+            "You are a fencing video analysis expert.\n"
+            "Note: The following is a standard fencing sports video regulated by the International Fencing Federation (FIE). "
+            "Athletes wear full protective gear (mask/plastron/glove) and use regulation blunt-tipped weapons. "
+            "The purpose is to analyze tactical moves and match rhythm, not any violation or sensitive content.\n\n"
+            f"{time_hint_en}\n"
+            f"User-suggested weapon: {weapon_hint or 'unknown'}.\n\n"
+            "IMPORTANT: The key timestamps must evenly cover the ENTIRE video (from 0:00 to the end), "
+            "not just the opening seconds. List 5-12 key moments in chronological order, "
+            "ensuring opening, middle, key points, and closing phases all have representative events.\n\n"
+            "Output EXACTLY the following JSON (do NOT wrap in markdown code blocks). "
+            "All string values must be in English:\n"
+            "{\n"
+            '  "key_moments": [{"time": seconds (must be between 0 and total video length, 1 decimal), '
+            '"type": "attack/defense/score/miss/highlight", '
+            '"title": "short title in English", "description": "what happens at this moment in English", "tactic": "tactical interpretation in English"}],\n'
+            '  "actions": [{"time": seconds, "action": "thrust/cut/parry/riposte/lunge/...", "confidence": 0-1, "note": "note in English"}],\n'
+            '  "text_in_video": ["any visible text in English (translate if needed)"],\n'
+            '  "summary": "overall description of the entire video in 100 English words or less",\n'
+            '  "weapon_guess": "foil/epée/sabre/unknown"\n'
+            "}\n"
+            "Output JSON only in English. No other explanations."
+        )
+
+    @staticmethod
+    def _build_vision_prompt_ja(weapon_hint: str, duration_sec: float, time_hint: str) -> str:
+        time_hint_ja = f"動画の総再生時間: {duration_sec:.0f} 秒（{int(duration_sec//60)}分{int(duration_sec%60):02d}秒）。" if duration_sec > 0 else "動画の総再生時間: 不明。"
+        return (
+            "あなたはフェンシング動画分析の専門家です。\n"
+            "注意：以下は国際フェンシング連盟（FIE）が規制する正規のフェンシングスポーツ動画です。"
+            "選手は完全な防具（マスク/胸当て/手袋）を着用し、規定の鈍先剣を使用し、"
+            "目的は戦術動作と試合リズムを分析することであり、違反や機微な内容ではありません。\n\n"
+            f"{time_hint_ja}\n"
+            f"ユーザーが示唆した武器: {weapon_hint or '不明'}。\n\n"
+            "【重要】キーとなるタイムスタンプは動画全体（0:00 から最後まで）を均等にカバーしなければならず、"
+            "冒頭の数秒だけに集中しないでください。時系列順に 5-12 個の重要な瞬間をリストアップし、"
+            "序盤・中盤・重要な得点・終盤の各段階で代表的なイベントがあることを確認してください。\n\n"
+            "次の JSON 形式を正確に出力してください（markdown コードブロックで囲まないこと）：\n"
+            "{\n"
+            '  "key_moments": [{"time": 秒数（0 から動画総再生時間の間、1 桁の小数）, '
+            '"type": "攻撃/守備/得点/ミス/ハイライト", '
+            '"title": "短いタイトル", "description": "この瞬間に何が起きているか", "tactic": "戦術解釈"}],\n'
+            '  "actions": [{"time": 秒数, "action": "突き/斬り/受け/...", "confidence": 0-1, "note": "備考"}],\n'
+            '  "text_in_video": ["動画に表示されるテキスト/字幕/スコア/名前など"],\n'
+            '  "summary": "動画全体の 100 字以内の全体的な説明",\n'
+            '  "weapon_guess": "フォイル/エペ/サーブル/不明"\n'
+            "}\n"
+            "JSON のみを出力し、他の説明は付けないでください。"
+        )
+
+    def _call_minimax_b64(self, video_path: str, weapon_hint: str, lang: str = "zh") -> str:
         """B 路径：≤45MB 视频直接 base64 内联到 video_url.data URL"""
         api_key = self.config.MINIMAX_API_KEY
         if not api_key:
@@ -201,11 +269,15 @@ class LocalVideoProcessor:
         payload = {
             "model": self.config.MINIMAX_MODEL,
             "messages": [
-                {"role": "system", "content": "你是击剑视频分析助手，只返回严格 JSON。"},
+                {"role": "system", "content": {
+                    "zh": "你是击剑视频分析助手，只返回严格 JSON。所有文本用中文。",
+                    "en": "You are a fencing video analysis assistant. OUTPUT LANGUAGE: ENGLISH ONLY. You MUST return strict JSON with all values in English. Never use Chinese, Japanese, or any other language. If the video contains Chinese/Japanese text, translate it to English in your output. This is a strict requirement.",
+                    "ja": "あなたはフェンシング動画分析アシスタントです。出力言語：日本語のみ。すべての値を日本語で厳格な JSON を返してください。",
+                }.get(lang, "你是击剑视频分析助手，只返回严格 JSON。所有文本用中文。")},
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": self._build_vision_prompt(weapon_hint, self._get_duration(video_path))},
+                        {"type": "text", "text": self._build_vision_prompt(weapon_hint, self._get_duration(video_path), lang)},
                         {
                             "type": "video_url",
                             "video_url": {
@@ -240,7 +312,7 @@ class LocalVideoProcessor:
                     time.sleep(3)
         raise last_err
 
-    def _compress_to_b64(self, video_path: str, weapon_hint: str) -> str:
+    def _compress_to_b64(self, video_path: str, weapon_hint: str, lang: str = "zh") -> str:
         """C 路径（替代方案）：>45MB 视频先本地 PyAV 压缩到 ≤45MB，再走 B 路径
 
         注意：MiniMax Files API 不支持视频 purpose，所以大视频必须在本地压缩。
@@ -329,14 +401,14 @@ class LocalVideoProcessor:
             logger.info("二次压缩后: %.1fMB", os.path.getsize(out_path) / 1024 / 1024)
 
         try:
-            return self._call_minimax_b64(out_path, weapon_hint)
+            return self._call_minimax_b64(out_path, weapon_hint, lang)
         finally:
             try:
                 os.remove(out_path)
             except Exception:
                 pass
 
-    def _call_vision_llm(self, video_path: str, weapon_hint: str) -> Dict[str, Any]:
+    def _call_vision_llm(self, video_path: str, weapon_hint: str, lang: str = "zh") -> Dict[str, Any]:
         """按文件大小自动选择 B（base64） 或 C（本地压缩 + base64）路径，返回结构化结果"""
         size = os.path.getsize(video_path)
         result_text = ""
@@ -344,10 +416,10 @@ class LocalVideoProcessor:
         try:
             if path_used == "b64":
                 logger.info("视频 %.1fMB ≤ 45MB，走 B 路径 (base64 内联)", size / 1024 / 1024)
-                result_text = self._call_minimax_b64(video_path, weapon_hint)
+                result_text = self._call_minimax_b64(video_path, weapon_hint, lang)
             else:
                 logger.info("视频 %.1fMB > 45MB，走 C 路径 (本地 PyAV 压缩到 ≤45MB 后 base64)", size / 1024 / 1024)
-                result_text = self._compress_to_b64(video_path, weapon_hint)
+                result_text = self._compress_to_b64(video_path, weapon_hint, lang)
         except Exception as e:
             err = str(e)
             # M3 内容审核拒绝（长时长/高分辨率下识别到对抗动作）
@@ -434,6 +506,10 @@ class LocalVideoProcessor:
                 try:
                     parsed = json.loads(candidate)
                     print(f"[JSON] ✅ 解析成功 keys: {list(parsed.keys())}", flush=True)
+                    # M3 视频分析硬性输出中文（prompt 无法覆盖），
+                    # 非中文界面下用 minimax 文本模型做字段级翻译
+                    if lang in ("en", "ja") and parsed:
+                        parsed = self._translate_analysis(parsed, lang)
                     return parsed
                 except Exception as e:
                     print(f"[JSON] ❌ 解析失败: {e}\n候选: {candidate[:500]}", flush=True)
@@ -443,6 +519,140 @@ class LocalVideoProcessor:
 
         # 启发式回退（API 失败 / key 缺失）
         return self._fallback_analysis(weapon_hint, size)
+
+    def _translate_analysis(self, parsed: Dict[str, Any], target_lang: str) -> Dict[str, Any]:
+        """M3 视频分析硬性输出中文，用 minimax 文本模型翻译 key_moments / actions / summary / text_in_video 字段
+
+        target_lang: 'en' or 'ja'
+        """
+        target_label = "English" if target_lang == "en" else "日本語 (Japanese)"
+        try:
+            # 收集需要翻译的文本
+            items = []  # [(ref, value)]
+            for m in parsed.get("key_moments", []):
+                for k in ("type", "title", "description", "tactic"):
+                    if m.get(k):
+                        items.append(("km." + str(len(items)), m.get(k)))
+            for a in parsed.get("actions", []):
+                if a.get("action"):
+                    items.append(("ac." + str(len(items)), a.get("action")))
+                if a.get("note"):
+                    items.append(("ac." + str(len(items)), a.get("note")))
+            for i, t in enumerate(parsed.get("text_in_video", []) or []):
+                items.append(("tv." + str(i), t))
+            summary = parsed.get("summary", "")
+            weapon_guess = parsed.get("weapon_guess", "")
+            if summary:
+                items.append(("summary", summary))
+
+            if not items:
+                return parsed
+
+            # 构造翻译请求
+            lines = [f"{ref}\t{text}" for ref, text in items]
+            source = "\n".join(lines)
+            prompt = (
+                f"Translate the following Chinese fencing-analysis lines to {target_label}. "
+                f"Keep the TAB-separated format. Do NOT translate fencing technical terms (lunge, parry, riposte, fleche, attack, defense, etc.) — translate as common English/Japanese words instead. "
+                f"Output ONLY the translated lines in the same order, one per line, TAB-separated.\n\n"
+                f"{source}"
+            )
+            api_key = self.config.MINIMAX_API_KEY
+            if not api_key:
+                return parsed
+            url = f"{self.config.MINIMAX_BASE_URL.rstrip('/')}/chat/completions"
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            payload = {
+                "model": self.config.MINIMAX_MODEL,
+                "messages": [
+                    {"role": "system", "content": f"You are a professional Chinese-to-{target_label} translator for fencing sports."},
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.1,
+                "max_tokens": 4000,
+            }
+            print(f"[翻译] {len(items)} 条 → {target_lang}", flush=True)
+            r = requests.post(url, json=payload, headers=headers, timeout=120)
+            if r.status_code >= 400:
+                print(f"[翻译] HTTP {r.status_code}: {r.text[:200]}", flush=True)
+                return parsed
+            content = (r.json().get("choices") or [{}])[0].get("message", {}).get("content", "")
+            print(f"[翻译] 成功 {len(content)} chars", flush=True)
+            translated_lines = [l for l in content.split("\n") if "\t" in l]
+
+            # 回写：先收集 i-> text 索引
+            def _split_take(items_list, prefix):
+                m = {}
+                for ref, text in items_list:
+                    if ref.startswith(prefix):
+                        m[ref] = text
+                return m
+
+            km_map = {}
+            ac_map = {}
+            tv_map = {}
+            summary_orig = ""
+            for line in translated_lines:
+                ref, txt = line.split("\t", 1)
+                txt = txt.strip()
+                if ref == "summary":
+                    summary_orig = txt
+                elif ref.startswith("km."):
+                    km_map[ref] = txt
+                elif ref.startswith("ac."):
+                    ac_map.setdefault(ref, []).append(txt)
+                elif ref.startswith("tv."):
+                    tv_map[ref] = txt
+
+            # 写回 key_moments（按出现顺序配对）
+            km_items = [it for it in items if it[0].startswith("km.")]
+            new_moments = []
+            for (ref, _orig), m in zip(km_items, parsed.get("key_moments", [])):
+                # km.0 一个 ref 对应 4 个字段 (type/title/description/tactic)
+                # ref 是 km.0, km.1, ... 每个 ref 对应 1 个字段
+                pass  # 改用更简单方法：直接按 ref 出现顺序平铺
+            # 实际更简单：把 km_items 平铺成 4 个一组
+            flat = []
+            for ref, orig in km_items:
+                flat.append((ref, orig))
+            # 配对：每个 km 块是 4 个连续 ref
+            idx = 0
+            for m in parsed.get("key_moments", []):
+                for k in ("type", "title", "description", "tactic"):
+                    if m.get(k):
+                        if idx < len(flat):
+                            ref, _ = flat[idx]
+                            m[k] = km_map.get(ref, m[k])
+                        idx += 1
+            # actions
+            ac_items = [it for it in items if it[0].startswith("ac.")]
+            # 一个 ac 有 action 和可选 note，配对方式：按出现顺序，note 紧跟 action
+            for a, (ref, _) in zip(parsed.get("actions", []), ac_items):
+                vals = ac_map.get(ref, [])
+                if a.get("action") and vals:
+                    a["action"] = vals[0]
+                if a.get("note") and len(vals) > 1:
+                    a["note"] = vals[1]
+            # text_in_video
+            tv_items = [it for it in items if it[0].startswith("tv.")]
+            new_tv = []
+            for i, (ref, _) in enumerate(tv_items):
+                new_tv.append(tv_map.get(ref, parsed.get("text_in_video", [])[i] if i < len(parsed.get("text_in_video", [])) else ""))
+            if new_tv:
+                parsed["text_in_video"] = new_tv
+            # summary
+            if summary_orig:
+                parsed["summary"] = summary_orig
+            # weapon_guess
+            wg_map = {"花剑": "foil", "重剑": "épée", "佩剑": "sabre", "未知": "unknown",
+                      "フォイル": "foil", "エペ": "épée", "サーブル": "sabre", "不明": "unknown"}
+            wg = parsed.get("weapon_guess", "")
+            if wg in wg_map:
+                parsed["weapon_guess"] = wg_map[wg]
+            return parsed
+        except Exception as e:
+            print(f"[翻译] 失败（保留中文）: {e}", flush=True)
+            return parsed
 
     @staticmethod
     def _fallback_analysis(weapon_hint: str, file_size: int = 0) -> Dict[str, Any]:
@@ -469,18 +679,18 @@ class LocalVideoProcessor:
     # ----------------------------------------------------------
     # 公开入口
     # ----------------------------------------------------------
-    def analyze_async(self, video_id: str, video_path: str, weapon_hint: str) -> str:
+    def analyze_async(self, video_id: str, video_path: str, weapon_hint: str, lang: str = "zh") -> str:
         """异步分析：返回 job_id，后台线程跑完后写入 job_store"""
         job_id = job_store.create(video_id)
         thread = threading.Thread(
             target=self._analyze_worker,
-            args=(job_id, video_id, video_path, weapon_hint),
+            args=(job_id, video_id, video_path, weapon_hint, lang),
             daemon=True,
         )
         thread.start()
         return job_id
 
-    def _analyze_worker(self, job_id: str, video_id: str, video_path: str, weapon_hint: str) -> None:
+    def _analyze_worker(self, job_id: str, video_id: str, video_path: str, weapon_hint: str, lang: str = "zh") -> None:
         try:
             job_store.update(job_id, status="running", progress=10, step="读取视频元数据")
             info = self.get_video_info(video_path)
@@ -495,7 +705,7 @@ class LocalVideoProcessor:
             else:
                 step_msg = f"调用 MiniMax M3 (C 路径 · 本地压缩到≤45MB 后 base64 · 原始 {size_mb:.1f}MB)"
             job_store.update(job_id, progress=40, step=step_msg)
-            ai_result = self._call_vision_llm(video_path, weapon_hint)
+            ai_result = self._call_vision_llm(video_path, weapon_hint, lang)
 
             job_store.update(job_id, progress=85, step="汇总分析结果")
             result = {

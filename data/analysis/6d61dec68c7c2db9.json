@@ -1,0 +1,107 @@
+{
+  "video_id": "6d61dec68c7c2db9",
+  "duration": 6.0,
+  "fps": 25.0,
+  "resolution": "320x240",
+  "file_size_mb": 0.02,
+  "analyze_path": "b64",
+  "key_moments": [
+    {
+      "time": 0.0,
+      "type": "highlight",
+      "title": "Initial Stance",
+      "description": "Two fencers (yellow and red) start in en garde position, facing each other on the piste.",
+      "tactic": "Initial setup before the engagement begins."
+    },
+    {
+      "time": 1.0,
+      "type": "attack",
+      "title": "Advance and Approach",
+      "description": "The fencers begin closing distance, moving toward the center of the piste.",
+      "tactic": "Setting up the attack by controlling distance."
+    },
+    {
+      "time": 2.0,
+      "type": "attack",
+      "title": "Engagement Initiated",
+      "description": "The fencers accelerate forward, weapons raised, preparing for the exchange.",
+      "tactic": "Initiating offensive action with blade preparation."
+    },
+    {
+      "time": 3.0,
+      "type": "defense",
+      "title": "Blade Contact and Parry",
+      "description": "The blades meet in the middle; the red fencer executes a parry against the yellow fencer's attack.",
+      "tactic": "Defensive parry to deflect the incoming attack."
+    },
+    {
+      "time": 4.0,
+      "type": "attack",
+      "title": "Riposte Attempt",
+      "description": "The red fencer transitions from parry to riposte, pushing forward into the yellow fencer's territory.",
+      "tactic": "Counter-attack following successful parry, exploiting the opening."
+    },
+    {
+      "time": 5.0,
+      "type": "score",
+      "title": "Touch Scored",
+      "description": "The red fencer's blade tip reaches the yellow fencer's target area, landing a touch.",
+      "tactic": "Successful riposte scoring a point through the opponent's open line."
+    },
+    {
+      "time": 6.0,
+      "type": "highlight",
+      "title": "End of Exchange",
+      "description": "The fencers separate and return to en garde, resetting for the next bout.",
+      "tactic": "Recovery and reset after the completed exchange."
+    }
+  ],
+  "actions": [
+    {
+      "time": 0.0,
+      "action": "en garde",
+      "confidence": 0.8,
+      "note": "Fencers in starting position on the piste."
+    },
+    {
+      "time": 1.0,
+      "action": "Fencers in starting position on the piste.",
+      "confidence": 0.7,
+      "note": "Fencers begin closing distance with cautious steps."
+    },
+    {
+      "time": 2.0,
+      "action": "advance",
+      "confidence": 0.7,
+      "note": "Body lean forward, arm extending toward opponent."
+    },
+    {
+      "time": 3.0,
+      "action": "Fencers begin closing distance with cautious steps.",
+      "confidence": 0.8,
+      "note": "Red fencer deflects yellow fencer's blade in the middle line."
+    },
+    {
+      "time": 4.0,
+      "action": "lunge preparation",
+      "confidence": 0.8,
+      "note": "Red fencer counters immediately with a direct thrust."
+    },
+    {
+      "time": 5.0,
+      "action": "Body lean forward, arm extending toward opponent.",
+      "confidence": 0.9,
+      "note": "Blade tip reaches target area, registering a touch."
+    },
+    {
+      "time": 6.0,
+      "action": "parry",
+      "confidence": 0.7,
+      "note": "Fencers disengage and return to starting position."
+    }
+  ],
+  "text_in_video": [],
+  "summary": "This short animation depicts a simplified fencing exchange between two fencers represented by yellow and red rectangles. The sequence begins with the fencers in en garde position, advances through their approach and blade engagement, and culminates in a parry-riposte action where the red fencer successfully counters the yellow fencer's attack. A touch is scored before the fencers separate and reset. The diagram style abstracts the athletes into colored boxes, focusing purely on spatial movement and blade interaction patterns typical of foil fencing tactics.",
+  "weapon_guess": "foil",
+  "analyzed_at": "2026-07-05T13:29:03.367182"
+}

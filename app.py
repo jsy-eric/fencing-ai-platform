@@ -409,7 +409,10 @@ def upload_video():
 
         # 否则启动异步分析
         weapon_hint = (request.form.get('weapon') or '').strip()
-        job_id = local_video_processor.analyze_async(video_id, saved['path'], weapon_hint)
+        lang = (request.form.get('lang') or 'zh').strip().lower()
+        if lang not in ('zh', 'en', 'ja'):
+            lang = 'zh'
+        job_id = local_video_processor.analyze_async(video_id, saved['path'], weapon_hint, lang)
         session['current_local_video'] = {
             'video_id': video_id,
             'filename': f.filename,

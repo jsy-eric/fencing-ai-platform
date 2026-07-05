@@ -63,6 +63,9 @@ class LocalVideoSystem {
         const fd = new FormData();
         fd.append('video', file);
         if (weapon && weapon !== 'auto') fd.append('weapon', weapon);
+        // 带上当前 UI 语言，让 M3 输出对应语言的分析文本
+        const curLang = localStorage.getItem('fencing_ai_lang') || 'zh';
+        fd.append('lang', curLang);
 
         try {
             // 用 XHR 拿上传进度

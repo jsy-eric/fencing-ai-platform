@@ -1,0 +1,49 @@
+{
+  "video_id": "2b3fc6134410384e",
+  "duration": 60.0,
+  "fps": 30.0,
+  "resolution": "640x360",
+  "file_size_mb": 0.52,
+  "analyze_path": "b64",
+  "key_moments": [
+    {
+      "time": 5,
+      "type": "进攻",
+      "title": "试探进攻",
+      "description": "选手开始试探对手节奏与距离",
+      "tactic": "观察对手防守习惯"
+    },
+    {
+      "time": 15,
+      "type": "精彩",
+      "title": "中段对攻",
+      "description": "双方进入中距离交锋",
+      "tactic": "注意控制距离"
+    },
+    {
+      "time": 30,
+      "type": "得分",
+      "title": "关键得分",
+      "description": "出现一次有效得分动作",
+      "tactic": "把握时机"
+    }
+  ],
+  "actions": [
+    {
+      "time": 5,
+      "action": "试探",
+      "confidence": 0.55,
+      "note": "启发式（MiniMax API 不可用）"
+    },
+    {
+      "time": 15,
+      "action": "试探",
+      "confidence": 0.55,
+      "note": "启发式（MiniMax API 不可用）"
+    }
+  ],
+  "text_in_video": [],
+  "summary": "未取得 MiniMax M3 真实分析（视频 0.5MB）。检查 API key / 网络后重试。",
+  "weapon_guess": "佩剑",
+  "analyzed_at": "2026-07-05T11:45:40.371538"
+}

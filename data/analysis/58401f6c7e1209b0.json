@@ -1,9 +1,10 @@
 {
-  "video_id": "b0f777999dc3b52a",
-  "duration": 10.0,
+  "video_id": "58401f6c7e1209b0",
+  "duration": 499.23333333333335,
   "fps": 30.0,
-  "resolution": "640x360",
-  "frame_count": 2,
+  "resolution": "2560x1664",
+  "file_size_mb": 34.13,
+  "analyze_path": "b64",
   "key_moments": [
     {
       "time": 5,
@@ -13,14 +14,14 @@
       "tactic": "观察对手防守习惯"
     },
     {
-      "time": 5,
+      "time": 15,
       "type": "精彩",
       "title": "中段对攻",
       "description": "双方进入中距离交锋",
       "tactic": "注意控制距离"
     },
     {
-      "time": 10,
+      "time": 30,
       "type": "得分",
       "title": "关键得分",
       "description": "出现一次有效得分动作",
@@ -32,17 +33,17 @@
       "time": 5,
       "action": "试探",
       "confidence": 0.55,
-      "note": "启发式推断（未配置多模态 API）"
+      "note": "启发式（MiniMax API 不可用）"
     },
     {
-      "time": 10,
+      "time": 15,
       "action": "试探",
       "confidence": 0.55,
-      "note": "启发式推断（未配置多模态 API）"
+      "note": "启发式（MiniMax API 不可用）"
     }
   ],
   "text_in_video": [],
-  "summary": "已采样 2 帧，未配置多模态 API 时仅能给出启发式标记。配置 SILICONFLOW_API_KEY 后可获得更精确识别。",
-  "weapon_guess": "花剑",
-  "analyzed_at": "2026-07-04T16:36:47.511648"
+  "summary": "未取得 MiniMax M3 真实分析（视频 34.1MB）。检查 API key / 网络后重试。",
+  "weapon_guess": "未知",
+  "analyzed_at": "2026-07-05T11:33:48.406119"
 }
