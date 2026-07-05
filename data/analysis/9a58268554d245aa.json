@@ -1,0 +1,81 @@
+{
+  "video_id": "9a58268554d245aa",
+  "duration": 6.0,
+  "fps": 25.0,
+  "resolution": "320x240",
+  "file_size_mb": 0.02,
+  "analyze_path": "b64",
+  "key_moments": [
+    {
+      "time": 0.0,
+      "type": "进攻",
+      "title": "初始对峙",
+      "description": "黄色方块在左侧，红色方块在右侧，双方处于初始对峙位置",
+      "tactic": "双方保持距离，观察对方动向"
+    },
+    {
+      "time": 0.1,
+      "type": "进攻",
+      "title": "黄色方块前移",
+      "description": "黄色方块开始向中心方向移动，发起进攻",
+      "tactic": "试探性前进，压迫对手距离"
+    },
+    {
+      "time": 0.2,
+      "type": "精彩",
+      "title": "双方交汇",
+      "description": "两个方块在中央位置重叠，象征交锋瞬间",
+      "tactic": "近身对抗，双方同时进入攻击距离"
+    },
+    {
+      "time": 0.3,
+      "type": "防守",
+      "title": "红色方块后撤",
+      "description": "交锋后红色方块向左移动，黄色方块向右移动，双方交换位置",
+      "tactic": "交锋后分离，重新建立距离"
+    },
+    {
+      "time": 0.4,
+      "type": "失误",
+      "title": "分离阶段",
+      "description": "双方继续分开，红色方块退到左侧，黄色方块退到右侧",
+      "tactic": "攻防转换后重新调整站位"
+    }
+  ],
+  "actions": [
+    {
+      "time": 0.0,
+      "action": "对峙",
+      "confidence": 0.8,
+      "note": "双方保持距离等待"
+    },
+    {
+      "time": 0.1,
+      "action": "前进",
+      "confidence": 0.7,
+      "note": "黄色方块向左移动发起进攻"
+    },
+    {
+      "time": 0.2,
+      "action": "交锋",
+      "confidence": 0.9,
+      "note": "两个方块在中心位置重叠"
+    },
+    {
+      "time": 0.3,
+      "action": "后撤",
+      "confidence": 0.8,
+      "note": "交锋后双方各自向反方向移动"
+    },
+    {
+      "time": 0.4,
+      "action": "复位",
+      "confidence": 0.7,
+      "note": "双方继续分离，回到对侧位置"
+    }
+  ],
+  "text_in_video": [],
+  "summary": "这是一段简化的2D动画演示，展示两个抽象方块代表的两名选手从初始对峙位置移动到中央交汇交锋，最后分别后撤到对侧位置的过程，并非真实击剑比赛视频。",
+  "weapon_guess": "未知",
+  "analyzed_at": "2026-07-05T10:56:56.307829"
+}

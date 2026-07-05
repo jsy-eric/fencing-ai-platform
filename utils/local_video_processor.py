@@ -1,33 +1,36 @@
 """
-本地视频处理模块 - 帧提取 + AI 多模态分析 + 持久化
+本地视频处理模块 - 直接发视频给 MiniMax M3 多模态分析 + 持久化
 
 流程：
-1. ffmpeg 抽帧（每 N 秒一帧，缩放到 480p 省 token）
-2. 把帧 base64 编码批量送入 LLM（带多模态能力的部分 provider）
-3. 让 LLM 返回结构化 JSON：关键时刻、动作识别、文字/字幕
-4. 落地到 data/analysis/{video_id}.json
-5. 通过内存 job_store 暴露进度供前端轮询
+1. 根据文件大小选择路径：
+   - ≤45MB：base64 内联到请求体（video_url data URL）
+   - >45MB：先调 MiniMax Files API 上传，拿到 file_id，再用 mm_file://file_id 引用
+2. MiniMax M3 直接理解视频并返回结构化 JSON：关键时刻、动作识别、文字/字幕
+3. 落地到 data/analysis/{video_id}.json
+4. 通过内存 job_store 暴露进度供前端轮询
 """
 import os
-import io
 import re
 import json
 import time
 import base64
 import hashlib
 import logging
-import subprocess
+import requests
 import threading
 import uuid
 from typing import Dict, List, Optional, Any
 from datetime import datetime
-from PIL import Image
 from config import Config
 
 logger = logging.getLogger(__name__)
 
-# 文件大小限制（100MB）
-MAX_FILE_SIZE = 100 * 1024 * 1024
+# 文件大小限制（512MB 上限；超出走本地压缩 + B 路径）
+MAX_FILE_SIZE = 512 * 1024 * 1024
+# 视频走 base64 内联的最大尺寸（base64 膨胀 33% + 请求体 64MB 上限 → 文件 ≤45MB）
+B64_THRESHOLD = 45 * 1024 * 1024
+# M3 实际视频限制 50MB（超出需要本地压缩到 ≤45MB 再走 base64）
+COMPRESS_TARGET = 40 * 1024 * 1024  # 压缩目标 40MB，预留余量
 ALLOWED_EXT = {".mp4", ".mov", ".webm", ".avi", ".mkv", ".m4v"}
 
 # 落地目录
@@ -104,241 +107,206 @@ class LocalVideoProcessor:
 
     @staticmethod
     def get_video_info(video_path: str) -> Dict[str, Any]:
-        """用 ffprobe 取时长和帧率"""
+        """用 PyAV 读视频时长/分辨率/帧率（无需 ffmpeg/ffprobe）"""
         try:
-            out = subprocess.check_output(
-                [
-                    "ffprobe", "-v", "error",
-                    "-select_streams", "v:0",
-                    "-show_entries", "stream=width,height,r_frame_rate,duration:format=duration",
-                    "-of", "json",
-                    video_path,
-                ],
-                stderr=subprocess.STDOUT,
-                timeout=15,
-            )
-            data = json.loads(out.decode("utf-8", errors="ignore"))
-            stream = (data.get("streams") or [{}])[0]
-            fmt = data.get("format") or {}
-            duration = float(fmt.get("duration") or stream.get("duration") or 0)
-            width = int(stream.get("width") or 0)
-            height = int(stream.get("height") or 0)
-            fps_str = stream.get("r_frame_rate") or "0/1"
-            try:
-                num, den = fps_str.split("/")
-                fps = float(num) / float(den) if float(den) else 0
-            except Exception:
-                fps = 0
-            return {
-                "duration": duration,
-                "width": width,
-                "height": height,
-                "fps": fps,
-            }
+            import av
+            container = av.open(video_path)
+            stream = container.streams.video[0]
+            width = stream.width or 0
+            height = stream.height or 0
+            # 帧率
+            fps = 0.0
+            if stream.average_rate:
+                fps = float(stream.average_rate)
+            elif stream.base_rate:
+                fps = float(stream.base_rate)
+            # 时长
+            duration = 0.0
+            if stream.duration and stream.time_base:
+                duration = float(stream.duration * stream.time_base)
+            elif container.duration:
+                duration = float(container.duration) / 1_000_000  # us → s
+            container.close()
+            return {"duration": duration, "width": width, "height": height, "fps": fps}
         except Exception as e:
-            logger.warning("ffprobe 失败: %s", e)
+            logger.warning("PyAV 读视频元数据失败: %s", e)
             return {"duration": 0, "width": 0, "height": 0, "fps": 0}
 
     @staticmethod
     def extract_frames(video_path: str, out_dir: str, interval_sec: float = 5.0,
                        max_frames: int = 24, target_w: int = 640) -> List[Dict[str, Any]]:
-        """每 interval_sec 秒抽一帧，最多 max_frames 帧
+        """兼容旧调用：现在直接发视频给 M3，不再抽帧；返回空列表即可。"""
+        return []
 
-        优先用 PyAV（libav 解码，不依赖 ffmpeg muxer），失败时再尝试 ffmpeg 命令。
-        用 PIL 缩放并转 jpeg + base64。
-        """
-        os.makedirs(out_dir, exist_ok=True)
-        info = LocalVideoProcessor.get_video_info(video_path)
-        duration = info["duration"]
-        if duration <= 0:
-            duration = 300
+    # ----------------------------------------------------------
+    # AI 分析：直接发视频给 MiniMax M3（BC 混合）
+    # ----------------------------------------------------------
+    def _build_vision_prompt(self, weapon_hint: str) -> str:
+        return (
+            "你是一名击剑视频分析专家。"
+            f"用户提示的剑种为：{weapon_hint or '未知'}。\n\n"
+            "请按以下 JSON 格式输出（不要包裹 markdown 代码块）：\n"
+            "{\n"
+            '  "key_moments": [{"time": 秒数, "type": "进攻/防守/得分/失误/精彩", '
+            '"title": "短标题", "description": "该时刻在做什么", "tactic": "战术解读"}],\n'
+            '  "actions": [{"time": 秒数, "action": "直刺/劈/格挡/...", "confidence": 0-1, "note": "备注"}],\n'
+            '  "text_in_video": ["视频中出现的文字/字幕/比分/姓名等"],\n'
+            '  "summary": "对整段视频 100 字以内的整体描述",\n'
+            '  "weapon_guess": "花剑/重剑/佩剑/未知"\n'
+            "}\n"
+            "只输出 JSON，不要其他说明。"
+        )
 
-        # 抽帧时刻
-        times = []
-        t = 1.0
-        while t < duration and len(times) < max_frames:
-            times.append(round(t, 2))
-            t += interval_sec
+    def _call_minimax_b64(self, video_path: str, weapon_hint: str) -> str:
+        """B 路径：≤45MB 视频直接 base64 内联到 video_url.data URL"""
+        api_key = self.config.MINIMAX_API_KEY
+        if not api_key:
+            raise RuntimeError("MINIMAX_API_KEY 未配置")
 
-        results: List[Dict[str, Any]] = []
-        # 优先用 PyAV
-        try:
-            import av
-            container = av.open(video_path)
-            stream = container.streams.video[0]
-            # 设置 pts-based seek
-            stream.codec_context.thread_type = "AUTO"
-            # 用 seek + decode 方式取帧
-            # 简化：顺序解码，记录每帧 pts，找到最接近 target 的帧
-            for ts in times:
-                # seek 到目标位置（前后都留点余量）
-                tb = float(stream.time_base) if stream.time_base else 1/30
-                target_pts = int(ts / tb)
-                # 用 frame.index 和平均帧率估计
-                container.seek(target_pts, backward=True, any_frame=False)
-                # 解码到目标帧附近
-                best_frame = None
-                best_diff = float('inf')
-                for frame in container.decode(video=0):
-                    if frame.pts is None:
-                        continue
-                    diff = abs(frame.pts - target_pts)
-                    if diff < best_diff:
-                        best_diff = diff
-                        best_frame = frame
-                    if frame.pts and frame.pts >= target_pts:
-                        break
-                if best_frame is None:
-                    continue
-                img = best_frame.to_image()  # PIL.Image
-                if img.width > target_w:
-                    nh = int(img.height * target_w / img.width)
-                    img = img.resize((target_w, nh), Image.LANCZOS)
-                buf = io.BytesIO()
-                img.save(buf, format="JPEG", quality=70)
-                b64 = base64.b64encode(buf.getvalue()).decode("ascii")
-                jpg_path = os.path.join(out_dir, f"frame_{int(ts*1000):08d}.jpg")
-                results.append({
-                    "time": ts,
-                    "path": jpg_path,
-                    "b64": b64,
-                })
-            container.close()
-            if results:
-                return results
-        except Exception as e:
-            logger.warning("PyAV 抽帧失败 fallback 到 ffmpeg: %s", e)
+        with open(video_path, "rb") as f:
+            video_bytes = f.read()
+        b64 = base64.b64encode(video_bytes).decode("ascii")
+        ext = os.path.splitext(video_path)[1].lower().lstrip(".") or "mp4"
+        mime = "video/mp4" if ext == "mp4" else f"video/{ext}"
 
-        # Fallback: ffmpeg 抽帧
-        for idx, ts in enumerate(times):
-            try:
-                proc = subprocess.run(
-                    [
-                        "ffmpeg", "-y", "-loglevel", "error",
-                        "-ss", f"{ts}",
-                        "-i", video_path,
-                        "-frames:v", "1",
-                        "-an", "-sn",
-                        "-c:v", "mjpeg",   # 尝试 mjpeg
-                        "-f", "mp4",
-                        "-",
+        url = f"{self.config.MINIMAX_BASE_URL.rstrip('/')}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": self.config.MINIMAX_MODEL,
+            "messages": [
+                {"role": "system", "content": "你是击剑视频分析助手，只返回严格 JSON。"},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": self._build_vision_prompt(weapon_hint)},
+                        {"type": "video_url", "video_url": {
+                            "url": f"data:{mime};base64,{b64}"
+                        }},
                     ],
-                    capture_output=True,
-                    timeout=20,
-                )
-                if proc.returncode != 0 or not proc.stdout:
-                    # 再尝试 bmp (image2 family) - 但通常也不支持
-                    proc = subprocess.run(
-                        [
-                            "ffmpeg", "-y", "-loglevel", "error",
-                            "-ss", f"{ts}",
-                            "-i", video_path,
-                            "-frames:v", "1",
-                            "-an", "-sn",
-                            "-f", "mp4",
-                            "-c:v", "libx264",
-                            "-",
-                        ],
-                        capture_output=True,
-                        timeout=20,
-                    )
-                    if proc.returncode != 0 or not proc.stdout:
-                        logger.warning("ffmpeg fallback 也失败 t=%.2f", ts)
-                        continue
+                },
+            ],
+            "temperature": 0.3,
+            "max_tokens": 1500,
+        }
+        r = requests.post(url, json=payload, headers=headers, timeout=300)
+        if r.status_code >= 400:
+            raise RuntimeError(f"MiniMax b64 失败 {r.status_code}: {r.text[:200]}")
+        data = r.json()
+        return (data.get("choices") or [{}])[0].get("message", {}).get("content", "")
 
-                # 写入临时 mp4，再用 PyAV 解码（PyAV 已经初始化过，缓存）
-                tmp_mp4 = os.path.join(out_dir, f"_tmp_{idx:03d}.mp4")
-                with open(tmp_mp4, "wb") as f:
-                    f.write(proc.stdout)
-                try:
-                    import av
-                    c2 = av.open(tmp_mp4)
-                    for fr in c2.decode(video=0):
-                        img = fr.to_image()
-                        if img.width > target_w:
-                            nh = int(img.height * target_w / img.width)
-                            img = img.resize((target_w, nh), Image.LANCZOS)
-                        buf = io.BytesIO()
-                        img.save(buf, format="JPEG", quality=70)
-                        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
-                        jpg_path = os.path.join(out_dir, f"frame_{int(ts*1000):08d}.jpg")
-                        results.append({
-                            "time": ts,
-                            "path": jpg_path,
-                            "b64": b64,
-                        })
-                        break
-                    c2.close()
-                finally:
-                    try:
-                        os.remove(tmp_mp4)
-                    except Exception:
-                        pass
-            except Exception as e:
-                logger.warning("ffmpeg 抽帧异常 t=%.2f: %s", ts, e)
-                continue
+    def _compress_to_b64(self, video_path: str, weapon_hint: str) -> str:
+        """C 路径（替代方案）：>45MB 视频先本地 PyAV 压缩到 ≤45MB，再走 B 路径
 
-        return results
+        注意：MiniMax Files API 不支持视频 purpose，所以大视频必须在本地压缩。
+        压缩策略：720p / 1.5Mbps / h264，按比例缩时长（如仍然超就降码率/降分辨率）
+        """
+        import av
+        from fractions import Fraction
+        tmp_dir = os.path.join(os.path.dirname(video_path), "_compressed")
+        os.makedirs(tmp_dir, exist_ok=True)
+        out_path = os.path.join(tmp_dir, os.path.basename(video_path))
 
-    # ----------------------------------------------------------
-    # AI 分析
-    # ----------------------------------------------------------
-    def _call_vision_llm(self, frames_b64: List[str], weapon_hint: str) -> Dict[str, Any]:
-        """调用 LLM 多模态分析帧序列，返回结构化结果"""
-        from utils.fencing_ai import FencingAI
-        ai = FencingAI()
-        provider = ai.current_provider if hasattr(ai, "current_provider") else self.config.LLM_PROVIDER
-
-        # 组装多模态消息
-        content: List[Dict[str, Any]] = [{
-            "type": "text",
-            "text": (
-                "你是一名击剑视频分析专家。下面是一段击剑视频中按时间顺序抽出的关键帧（每张约 5 秒间隔）。"
-                f"用户提示的剑种为：{weapon_hint or '未知'}。\n\n"
-                "请逐帧分析并按以下 JSON 格式输出（不要包裹 markdown 代码块）：\n"
-                "{\n"
-                '  "key_moments": [{"time": 秒数, "type": "进攻/防守/得分/失误/精彩", '
-                '"title": "短标题", "description": "该时刻在做什么", "tactic": "战术解读"}],\n'
-                '  "actions": [{"time": 秒数, "action": "直刺/劈/格挡/...", "confidence": 0-1, "note": "备注"}],\n'
-                '  "text_in_video": ["视频中出现的文字/字幕/比分/姓名等"],\n'
-                '  "summary": "对整段视频 100 字以内的整体描述",\n'
-                '  "weapon_guess": "花剑/重剑/佩剑/未知"\n'
-                "}\n"
-                "只输出 JSON，不要其他说明。"
-            )
-        }]
-        for f in frames_b64:
-            content.append({
-                "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{f}"},
-            })
-
-        messages = [
-            {"role": "system", "content": "你是击剑视频分析助手，只返回严格 JSON。"},
-            {"role": "user", "content": content},
-        ]
-
-        result_text = ""
+        # 读原视频
+        src = av.open(video_path)
+        src_stream = src.streams.video[0]
+        orig_w, orig_h = src_stream.width, src_stream.height
+        # 帧率：average_rate 可能是 Fraction/0（变量）或 None
         try:
-            # DeepSeek/MiniMax/OpenAI 兼容接口
-            base_url = self.config.DEEPSEEK_BASE_URL
-            api_key = self.config.DEEPSEEK_API_KEY
-            if provider == "minimax":
-                base_url = self.config.MINIMAX_BASE_URL
-                api_key = self.config.MINIMAX_API_KEY
-            elif provider == "local":
-                base_url = "http://localhost:11434/v1"
-                api_key = "ollama"
+            orig_fps = float(src_stream.average_rate) if src_stream.average_rate else 30.0
+        except Exception:
+            orig_fps = 30.0
+        if orig_fps <= 0 or orig_fps > 120:
+            orig_fps = 30.0
+        # PyAV 需要 Fraction
+        fps_frac = Fraction(orig_fps).limit_denominator(1000)
 
-            # DeepSeek 当前没有视觉；切换到 OpenAI 兼容的多模态服务（如 siliconflow/qwen-vl）
-            # 这里走 siliconflow 作为多模态 fallback
+        # 目标：720p，长边 1280
+        if orig_w >= orig_h:
+            tgt_w, tgt_h = 1280, int(orig_h * 1280 / orig_w)
+            if tgt_h % 2: tgt_h += 1
+        else:
+            tgt_h, tgt_w = 1280, int(orig_w * 1280 / orig_h)
+            if tgt_w % 2: tgt_w += 1
+
+        # 写新视频
+        dst = av.open(out_path, mode='w')
+        dst_stream = dst.add_stream('libx264', rate=fps_frac)
+        dst_stream.width, dst_stream.height = tgt_w, tgt_h
+        dst_stream.pix_fmt = 'yuv420p'
+        # 先用 1.5Mbps；不够再降
+        dst_stream.bit_rate = 1_500_000
+        dst_stream.options = {'preset': 'medium', 'crf': '26'}
+
+        for frame in src.decode(video=0):
+            img = frame.to_image()
+            if img.width != tgt_w or img.height != tgt_h:
+                img = img.resize((tgt_w, tgt_h))
+            new_frame = av.VideoFrame.from_image(img).reformat(format='yuv420p')
+            new_frame.pts = frame.pts
+            new_frame.time_base = frame.time_base
+            for p in dst_stream.encode(new_frame):
+                dst.mux(p)
+        for p in dst_stream.encode():
+            dst.mux(p)
+        dst.close()
+        src.close()
+
+        compressed_size = os.path.getsize(out_path)
+        logger.info("压缩完成: %.1fMB → %.1fMB (%dx%d@%s)",
+                    os.path.getsize(video_path) / 1024 / 1024,
+                    compressed_size / 1024 / 1024, tgt_w, tgt_h, orig_fps)
+
+        # 如果仍 > 45MB，再压一次（降码率）
+        if compressed_size > B64_THRESHOLD:
+            logger.info("一次压缩后仍超阈值，二次压缩（降码率）")
+            os.remove(out_path)
+            dst2 = av.open(out_path, mode='w')
+            ds2 = dst2.add_stream('libx264', rate=fps_frac)
+            ds2.width, ds2.height = tgt_w, tgt_h
+            ds2.pix_fmt = 'yuv420p'
+            ds2.bit_rate = 800_000
+            ds2.options = {'preset': 'medium', 'crf': '30'}
+            src2 = av.open(video_path)
+            for frame in src2.decode(video=0):
+                img = frame.to_image()
+                if img.width != tgt_w or img.height != tgt_h:
+                    img = img.resize((tgt_w, tgt_h))
+                nf = av.VideoFrame.from_image(img).reformat(format='yuv420p')
+                nf.pts = frame.pts
+                nf.time_base = frame.time_base
+                for p in ds2.encode(nf):
+                    dst2.mux(p)
+            for p in ds2.encode():
+                dst2.mux(p)
+            dst2.close()
+            src2.close()
+            logger.info("二次压缩后: %.1fMB", os.path.getsize(out_path) / 1024 / 1024)
+
+        try:
+            return self._call_minimax_b64(out_path, weapon_hint)
+        finally:
             try:
-                result_text = self._call_siliconflow_vision(messages, frames_b64, weapon_hint)
-            except Exception as e:
-                logger.warning("多模态 API 失败：%s，使用启发式回退", e)
-                result_text = ""
+                os.remove(out_path)
+            except Exception:
+                pass
+
+    def _call_vision_llm(self, video_path: str, weapon_hint: str) -> Dict[str, Any]:
+        """按文件大小自动选择 B（base64） 或 C（本地压缩 + base64）路径，返回结构化结果"""
+        size = os.path.getsize(video_path)
+        result_text = ""
+        path_used = "b64" if size <= B64_THRESHOLD else "compress_b64"
+        try:
+            if path_used == "b64":
+                logger.info("视频 %.1fMB ≤ 45MB，走 B 路径 (base64 内联)", size / 1024 / 1024)
+                result_text = self._call_minimax_b64(video_path, weapon_hint)
+            else:
+                logger.info("视频 %.1fMB > 45MB，走 C 路径 (本地 PyAV 压缩到 ≤45MB 后 base64)", size / 1024 / 1024)
+                result_text = self._compress_to_b64(video_path, weapon_hint)
         except Exception as e:
-            logger.warning("多模态调用异常: %s", e)
+            logger.warning("MiniMax M3 调用失败 (%s 路径): %s，回退到启发式", path_used, e)
 
         # 解析 JSON
         if result_text:
@@ -349,56 +317,28 @@ class LocalVideoProcessor:
                 except Exception as e:
                     logger.warning("JSON 解析失败: %s\n原始: %s", e, result_text[:300])
 
-        # 启发式回退：基于采样时间均匀给出关键时刻
-        return self._fallback_analysis(frames_b64, weapon_hint)
-
-    def _call_siliconflow_vision(self, messages, frames_b64, weapon_hint) -> str:
-        """调用 siliconflow Qwen2-VL 进行多模态分析（用户需配置 SILICONFLOW_API_KEY）"""
-        api_key = os.getenv("SILICONFLOW_API_KEY", "")
-        if not api_key:
-            raise RuntimeError("SILICONFLOW_API_KEY 未配置")
-
-        url = "https://api.siliconflow.cn/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "model": os.getenv("SILICONFLOW_VL_MODEL", "Qwen/Qwen2-VL-72B-Instruct"),
-            "messages": messages,
-            "temperature": 0.3,
-            "max_tokens": 1500,
-        }
-        import requests
-        r = requests.post(url, json=payload, headers=headers, timeout=120)
-        r.raise_for_status()
-        data = r.json()
-        return (data.get("choices") or [{}])[0].get("message", {}).get("content", "")
+        # 启发式回退（API 失败 / key 缺失）
+        return self._fallback_analysis(weapon_hint, size)
 
     @staticmethod
-    def _fallback_analysis(frames_b64: List[str], weapon_hint: str) -> Dict[str, Any]:
-        """无 API key / API 失败时的启发式分析"""
-        n = len(frames_b64)
-        interval = 5
-        moments = []
-        actions = [
-            {"time": interval * (i + 1), "action": "试探", "confidence": 0.55, "note": "启发式推断（未配置多模态 API）"}
-            for i in range(min(4, n))
+    def _fallback_analysis(weapon_hint: str, file_size: int = 0) -> Dict[str, Any]:
+        """API 失败时的兜底分析"""
+        moments = [
+            {"time": 5, "type": "进攻", "title": "试探进攻",
+             "description": "选手开始试探对手节奏与距离", "tactic": "观察对手防守习惯"},
+            {"time": 15, "type": "精彩", "title": "中段对攻",
+             "description": "双方进入中距离交锋", "tactic": "注意控制距离"},
+            {"time": 30, "type": "得分", "title": "关键得分",
+             "description": "出现一次有效得分动作", "tactic": "把握时机"},
         ]
-        if n >= 2:
-            moments = [
-                {"time": interval, "type": "进攻", "title": "试探进攻",
-                 "description": "选手开始试探对手节奏与距离", "tactic": "观察对手防守习惯"},
-                {"time": interval * max(1, n // 2), "type": "精彩", "title": "中段对攻",
-                 "description": "双方进入中距离交锋", "tactic": "注意控制距离"},
-                {"time": interval * max(2, n - 1), "type": "得分", "title": "关键得分",
-                 "description": "出现一次有效得分动作", "tactic": "把握时机"},
-            ]
         return {
             "key_moments": moments,
-            "actions": actions,
+            "actions": [
+                {"time": 5, "action": "试探", "confidence": 0.55, "note": "启发式（MiniMax API 不可用）"},
+                {"time": 15, "action": "试探", "confidence": 0.55, "note": "启发式（MiniMax API 不可用）"},
+            ],
             "text_in_video": [],
-            "summary": f"已采样 {n} 帧，未配置多模态 API 时仅能给出启发式标记。配置 SILICONFLOW_API_KEY 后可获得更精确识别。",
+            "summary": f"未取得 MiniMax M3 真实分析（视频 {file_size/1024/1024:.1f}MB）。检查 API key / 网络后重试。",
             "weapon_guess": weapon_hint or "未知",
         }
 
@@ -418,38 +358,29 @@ class LocalVideoProcessor:
 
     def _analyze_worker(self, job_id: str, video_id: str, video_path: str, weapon_hint: str) -> None:
         try:
-            job_store.update(job_id, status="running", progress=5, step="读取视频元数据")
+            job_store.update(job_id, status="running", progress=10, step="读取视频元数据")
             info = self.get_video_info(video_path)
             duration = info["duration"]
             if duration <= 0:
-                duration = 300
-            # 根据视频时长动态决定抽帧数：5s 一帧，封顶 30
-            interval = 5.0
-            max_frames = min(30, max(8, int(duration / interval) + 1))
+                duration = 0
+            file_size = os.path.getsize(video_path)
 
-            job_store.update(job_id, progress=15, step=f"抽帧中（间隔 {interval}s，最多 {max_frames} 帧）")
-            frames = self.extract_frames(
-                video_path,
-                out_dir=os.path.join(FRAME_DIR, video_id),
-                interval_sec=interval,
-                max_frames=max_frames,
-            )
-            if not frames:
-                raise RuntimeError("未能抽到任何帧，请检查视频文件")
+            size_mb = file_size / 1024 / 1024
+            if file_size <= B64_THRESHOLD:
+                step_msg = f"调用 MiniMax M3 (B 路径 · base64 · {size_mb:.1f}MB)"
+            else:
+                step_msg = f"调用 MiniMax M3 (C 路径 · 本地压缩到≤45MB 后 base64 · 原始 {size_mb:.1f}MB)"
+            job_store.update(job_id, progress=40, step=step_msg)
+            ai_result = self._call_vision_llm(video_path, weapon_hint)
 
-            job_store.update(job_id, progress=55, step=f"AI 多模态分析（{len(frames)} 帧）")
-            # 只把 b64 送给 LLM，不写盘以省空间
-            frames_b64 = [f["b64"] for f in frames]
-            ai_result = self._call_vision_llm(frames_b64, weapon_hint)
-
-            job_store.update(job_id, progress=85, step="汇总时间轴")
-            # 整理最终结果
+            job_store.update(job_id, progress=85, step="汇总分析结果")
             result = {
                 "video_id": video_id,
                 "duration": duration,
                 "fps": info["fps"],
                 "resolution": f"{info['width']}x{info['height']}",
-                "frame_count": len(frames),
+                "file_size_mb": round(size_mb, 2),
+                "analyze_path": "b64" if file_size <= B64_THRESHOLD else "compress_b64",
                 "key_moments": ai_result.get("key_moments", []),
                 "actions": ai_result.get("actions", []),
                 "text_in_video": ai_result.get("text_in_video", []),
@@ -458,7 +389,6 @@ class LocalVideoProcessor:
                 "analyzed_at": datetime.now().isoformat(),
             }
 
-            # 持久化
             self._save_analysis(video_id, result)
             job_store.update(
                 job_id,

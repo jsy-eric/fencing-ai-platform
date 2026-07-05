@@ -1,0 +1,14 @@
+{
+  "video_id": "5c2f5edd8e3dfa40",
+  "duration": 5.0,
+  "fps": 30.0,
+  "resolution": "640x360",
+  "file_size_mb": 61.24,
+  "analyze_path": "compress_b64",
+  "key_moments": [],
+  "actions": [],
+  "text_in_video": [],
+  "summary": "视频内容为全屏彩色噪点/静电画面，无法识别任何击剑比赛画面、人物或动作。",
+  "weapon_guess": "未知",
+  "analyzed_at": "2026-07-05T11:16:58.414199"
+}

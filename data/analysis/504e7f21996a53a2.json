@@ -1,0 +1,60 @@
+{
+  "video_id": "504e7f21996a53a2",
+  "duration": 300,
+  "fps": 0,
+  "resolution": "0x0",
+  "frame_count": 30,
+  "key_moments": [
+    {
+      "time": 5,
+      "type": "进攻",
+      "title": "试探进攻",
+      "description": "选手开始试探对手节奏与距离",
+      "tactic": "观察对手防守习惯"
+    },
+    {
+      "time": 75,
+      "type": "精彩",
+      "title": "中段对攻",
+      "description": "双方进入中距离交锋",
+      "tactic": "注意控制距离"
+    },
+    {
+      "time": 145,
+      "type": "得分",
+      "title": "关键得分",
+      "description": "出现一次有效得分动作",
+      "tactic": "把握时机"
+    }
+  ],
+  "actions": [
+    {
+      "time": 5,
+      "action": "试探",
+      "confidence": 0.55,
+      "note": "启发式推断（未配置多模态 API）"
+    },
+    {
+      "time": 10,
+      "action": "试探",
+      "confidence": 0.55,
+      "note": "启发式推断（未配置多模态 API）"
+    },
+    {
+      "time": 15,
+      "action": "试探",
+      "confidence": 0.55,
+      "note": "启发式推断（未配置多模态 API）"
+    },
+    {
+      "time": 20,
+      "action": "试探",
+      "confidence": 0.55,
+      "note": "启发式推断（未配置多模态 API）"
+    }
+  ],
+  "text_in_video": [],
+  "summary": "已采样 30 帧，未配置多模态 API 时仅能给出启发式标记。配置 SILICONFLOW_API_KEY 后可获得更精确识别。",
+  "weapon_guess": "花剑",
+  "analyzed_at": "2026-07-04T17:21:47.265514"
+}

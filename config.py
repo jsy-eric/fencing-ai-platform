@@ -22,12 +22,12 @@ class Config:
     DEEPSEEK_TEMPERATURE = float(os.getenv('DEEPSEEK_TEMPERATURE', '0.7'))
     DEEPSEEK_BASE_URL = os.getenv('DEEPSEEK_BASE_URL', 'https://api.deepseek.com/v1')
     
-    # MiniMax配置
+    # MiniMax配置（M3 多模态：支持图片+视频理解）
     MINIMAX_API_KEY = os.getenv('MINIMAX_API_KEY', '')
-    MINIMAX_MODEL = os.getenv('MINIMAX_MODEL', 'abab6-chat')
+    MINIMAX_MODEL = os.getenv('MINIMAX_MODEL', 'MiniMax-M3')
     MINIMAX_MAX_TOKENS = int(os.getenv('MINIMAX_MAX_TOKENS', '1000'))
     MINIMAX_TEMPERATURE = float(os.getenv('MINIMAX_TEMPERATURE', '0.7'))
-    MINIMAX_BASE_URL = os.getenv('MINIMAX_BASE_URL', 'https://api.minimax.chat/v1')
+    MINIMAX_BASE_URL = os.getenv('MINIMAX_BASE_URL', 'https://api.minimaxi.com/v1')
     
     # AI系统配置
     LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'deepseek')
