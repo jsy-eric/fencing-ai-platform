@@ -16,6 +16,14 @@ app.secret_key = config.SECRET_KEY
 # 100MB 上传限制
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
+# 开发模式禁用静态资源缓存，方便 i18n 改动即时生效
+@app.after_request
+def no_cache_for_dev(response):
+    if app.debug:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+    return response
+
 # 初始化各个系统
 fencing_ai = FencingAI()
 danmaku_system = DanmakuSystem()
